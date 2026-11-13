@@ -1,0 +1,6 @@
+# Never commit credentials: the GitHub App private key lives only in the k8s secret "github-app".
+*.pem
+*.key
+*kubeconfig*
+k3s.yaml
+.env

@@ -1,0 +1,3 @@
+# NVIDIA k8s-device-plugin 0.20.1 — exposes the node's GPU as nvidia.com/gpu.
+# k3s creates the "nvidia" RuntimeClass on its own when nvidia-container-toolkit is installed on the host.
+runtimeClassName: nvidia
