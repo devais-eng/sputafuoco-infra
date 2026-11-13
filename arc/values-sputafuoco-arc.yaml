@@ -2,6 +2,7 @@
 # Expanded dind template (from the chart's own containerMode=dind template), plus:
 #   - /var/lib/docker on an emptyDir (kubelet root-dir = /srv/data/kubelet), not the root fs
 #   - Docker Hub pull-through mirror
+#   - the runner image built by this repository, re-pulled for every job (latest + Always)
 githubConfigUrl: https://github.com/devais-eng
 githubConfigSecret: github-app
 runnerScaleSetName: sputafuoco-arc
@@ -20,7 +21,8 @@ template:
           - name: dotnet-crash
             mountPath: /dotnet-crash
       - name: init-dind-externals
-        image: ghcr.io/actions/actions-runner:latest
+        image: ghcr.io/devais-eng/arc-runner-sallo:latest
+        imagePullPolicy: Always
         command: ["cp", "-r", "/home/runner/externals/.", "/home/runner/tmpDir/"]
         volumeMounts:
           - name: dind-externals
@@ -56,7 +58,8 @@ template:
             mountPath: /var/lib/docker
     containers:
       - name: runner
-        image: ghcr.io/actions/actions-runner:latest
+        image: ghcr.io/devais-eng/arc-runner-sallo:latest
+        imagePullPolicy: Always
         command: ["/home/runner/run.sh"]
         env:
           - name: DOCKER_HOST
