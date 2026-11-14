@@ -1,0 +1,82 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: monitoring-hdd
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ci-monitoring-prometheus
+  labels:
+    monitoring-volume: prometheus
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: monitoring-hdd
+  local:
+    path: /srv/data/monitoring/prometheus
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - sputafuoco
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ci-monitoring-grafana
+  labels:
+    monitoring-volume: grafana
+spec:
+  capacity:
+    storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: monitoring-hdd
+  local:
+    path: /srv/data/monitoring/grafana
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - sputafuoco
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ci-monitoring-alertmanager
+  labels:
+    monitoring-volume: alertmanager
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: monitoring-hdd
+  local:
+    path: /srv/data/monitoring/alertmanager
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - sputafuoco

@@ -1,0 +1,1723 @@
+{
+  "uid": "sputafuoco-ci",
+  "title": "Sputafuoco · CI",
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "Europe/Rome",
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "tags": [
+    "CI",
+    "sputafuoco"
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "title": "CPU nodo",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * (1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[$__rate_interval])))",
+          "legendFormat": "CPU"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "RAM utilizzata",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max without (pod) (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)",
+          "legendFormat": "RAM"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "RAM disponibile",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max without (pod) (node_memory_MemAvailable_bytes)",
+          "legendFormat": "Disponibile"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Swap utilizzata",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max without (pod) (node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes)",
+          "legendFormat": "Swap"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Filesystem: spazio utilizzato",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max without (pod) (node_filesystem_size_bytes{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"} - node_filesystem_free_bytes{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"})",
+          "legendFormat": "{{mountpoint}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Sistema · RAID1 · / (md0)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/srv/data"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Dati · RAID1 · /srv/data (md1p1)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/srv/runner-ssd"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner · SSD · /srv/runner-ssd (sda3)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "Tre filesystem distinti. Sistema: md0, mirror su SSD e due HDD. Dati: md1p1, mirror sui due HDD. Runner: sda3, partizione SSD dedicata e non replicata. Le capacità dei filesystem sono espresse in unità binarie; le etichette dei dischi fisici indicano la capacità commerciale."
+    },
+    {
+      "id": 6,
+      "title": "Filesystem: spazio disponibile",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max without (pod) (node_filesystem_avail_bytes{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"})",
+          "legendFormat": "{{mountpoint}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Sistema · RAID1 · / (md0)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/srv/data"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Dati · RAID1 · /srv/data (md1p1)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/srv/runner-ssd"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner · SSD · /srv/runner-ssd (sda3)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "Tre filesystem distinti. Sistema: md0, mirror su SSD e due HDD. Dati: md1p1, mirror sui due HDD. Runner: sda3, partizione SSD dedicata e non replicata. Le capacità dei filesystem sono espresse in unità binarie; le etichette dei dischi fisici indicano la capacità commerciale."
+    },
+    {
+      "id": 7,
+      "title": "Filesystem: capacità totale",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max without (pod) (node_filesystem_size_bytes{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"})",
+          "legendFormat": "{{mountpoint}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Sistema · RAID1 · / (md0)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/srv/data"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Dati · RAID1 · /srv/data (md1p1)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/srv/runner-ssd"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner · SSD · /srv/runner-ssd (sda3)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "Tre filesystem distinti. Sistema: md0, mirror su SSD e due HDD. Dati: md1p1, mirror sui due HDD. Runner: sda3, partizione SSD dedicata e non replicata. Le capacità dei filesystem sono espresse in unità binarie; le etichette dei dischi fisici indicano la capacità commerciale."
+    },
+    {
+      "id": 8,
+      "title": "Filesystem: inode utilizzati",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max without (pod) (100 * (1-node_filesystem_files_free{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"}/node_filesystem_files{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"}))",
+          "legendFormat": "{{mountpoint}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Sistema · RAID1 · / (md0)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/srv/data"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Dati · RAID1 · /srv/data (md1p1)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/srv/runner-ssd"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner · SSD · /srv/runner-ssd (sda3)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "Tre filesystem distinti. Sistema: md0, mirror su SSD e due HDD. Dati: md1p1, mirror sui due HDD. Runner: sda3, partizione SSD dedicata e non replicata. Le capacità dei filesystem sono espresse in unità binarie; le etichette dei dischi fisici indicano la capacità commerciale."
+    },
+    {
+      "id": 9,
+      "title": "Pressione CPU nodo (some)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max without (pod) (100 * rate(node_pressure_cpu_waiting_seconds_total[$__rate_interval]))",
+          "legendFormat": "CPU"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "PSI: percentuale di tempo in cui il lavoro resta in attesa di una risorsa. Some = almeno un task in attesa; full = tutti i task non inattivi bloccati. Non indica semplicemente quanto la risorsa è utilizzata."
+    },
+    {
+      "id": 10,
+      "title": "Pressione RAM nodo (some)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max without (pod) (100 * rate(node_pressure_memory_waiting_seconds_total[$__rate_interval]))",
+          "legendFormat": "RAM"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "PSI: percentuale di tempo in cui il lavoro resta in attesa di una risorsa. Some = almeno un task in attesa; full = tutti i task non inattivi bloccati. Non indica semplicemente quanto la risorsa è utilizzata."
+    },
+    {
+      "id": 11,
+      "title": "Pressione I/O nodo (some)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max without (pod) (100 * rate(node_pressure_io_waiting_seconds_total[$__rate_interval]))",
+          "legendFormat": "I/O some"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "PSI: percentuale di tempo in cui il lavoro resta in attesa di una risorsa. Some = almeno un task in attesa; full = tutti i task non inattivi bloccati. Non indica semplicemente quanto la risorsa è utilizzata."
+    },
+    {
+      "id": 12,
+      "title": "Pressione I/O nodo (full)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 40,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max without (pod) (100 * rate(node_pressure_io_stalled_seconds_total[$__rate_interval]))",
+          "legendFormat": "I/O full"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "PSI: percentuale di tempo in cui il lavoro resta in attesa di una risorsa. Some = almeno un task in attesa; full = tutti i task non inattivi bloccati. Non indica semplicemente quanto la risorsa è utilizzata."
+    },
+    {
+      "id": 13,
+      "title": "CPU per pod · core utilizzati",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 48,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(namespace,pod)(rate(container_cpu_usage_seconds_total{pod!=\"\",container!=\"\",container!=\"POD\"}[$__rate_interval]))",
+          "legendFormat": "{{namespace}} / {{pod}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cores"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "1 core = un processore logico occupato. Sputafuoco dispone di 12 processori logici. Include tutti i namespace, anche il monitoraggio."
+    },
+    {
+      "id": 14,
+      "title": "RAM per pod (working set)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 48,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(namespace,pod)(container_memory_working_set_bytes{pod!=\"\",container!=\"\",container!=\"POD\"})",
+          "legendFormat": "{{namespace}} / {{pod}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "Working set: memoria in uso meno la cache inattiva recuperabile. Include tutti i namespace. Non è la memoria richiesta o il limite configurato nel pod."
+    },
+    {
+      "id": 15,
+      "title": "Pressione I/O per pod",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 56,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * sum by(namespace,pod)(rate(container_pressure_io_waiting_seconds_total{pod!=\"\",container=\"\",id=~\".*pod[^/]+[.]slice\"}[$__rate_interval]))",
+          "legendFormat": "{{namespace}} / {{pod}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "PSI: percentuale di tempo in cui il lavoro resta in attesa di una risorsa. Some = almeno un task in attesa; full = tutti i task non inattivi bloccati. Non indica semplicemente quanto la risorsa è utilizzata."
+    },
+    {
+      "id": 16,
+      "title": "Spazio SSD per runner · workspace e Docker",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 56,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "ci_runner_volume_used_bytes",
+          "legendFormat": "{{pod}} · {{volume}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".* · work$"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "${__field.labels.pod} · Workspace"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".* · dind-storage$"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "${__field.labels.pod} · Docker"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "Blocchi realmente allocati, campionati ogni 120 secondi. Workspace e dati Docker sono separati. Controllare sempre età e stato della raccolta nei pannelli successivi. Nessuna quota viene imposta dalle richieste dei PVC."
+    },
+    {
+      "id": 17,
+      "title": "Età rilevamento spazio runner",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 64,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "time() - ci_runner_volume_collection_timestamp_seconds",
+          "legendFormat": "Età"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "Secondi trascorsi dall’ultima scansione completa riuscita. Una scansione avviene ogni 120 secondi; oltre 360 secondi i valori devono essere considerati obsoleti."
+    },
+    {
+      "id": 18,
+      "title": "Rilevamento spazio runner riuscito",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 64,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "ci_runner_volume_collection_success",
+          "legendFormat": "Successo (1)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "Errore",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "OK",
+                  "color": "green"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "1 = ultima scansione riuscita; 0 = errore. In caso di errore gli ultimi valori restano visibili, ma possono essere obsoleti."
+    },
+    {
+      "id": 19,
+      "title": "Letture per disco fisico",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 72,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max without (pod) (rate(node_disk_read_bytes_total{device=~\"sd[a-c]\"}[$__rate_interval]))",
+          "legendFormat": "{{device}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sda"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "SSD Kingston · 120 GB · sda"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sdb"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "HDD WD #1 · 1 TB · sdb"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sdc"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "HDD WD #2 · 1 TB · sdc"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "Dischi fisici: sda = SSD Kingston da 120 GB; sdb e sdc = due HDD Western Digital da 1 TB. Ogni HDD partecipa sia al RAID di sistema sia al RAID dati. Questi grafici non sommano nuovamente le metriche dei dispositivi RAID."
+    },
+    {
+      "id": 20,
+      "title": "Scritture per disco fisico",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 72,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max without (pod) (rate(node_disk_written_bytes_total{device=~\"sd[a-c]\"}[$__rate_interval]))",
+          "legendFormat": "{{device}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sda"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "SSD Kingston · 120 GB · sda"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sdb"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "HDD WD #1 · 1 TB · sdb"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sdc"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "HDD WD #2 · 1 TB · sdc"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "Dischi fisici: sda = SSD Kingston da 120 GB; sdb e sdc = due HDD Western Digital da 1 TB. Ogni HDD partecipa sia al RAID di sistema sia al RAID dati. Questi grafici non sommano nuovamente le metriche dei dispositivi RAID."
+    },
+    {
+      "id": 21,
+      "title": "Tempo disco occupato",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 80,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max without (pod) (100 * rate(node_disk_io_time_seconds_total{device=~\"sd[a-c]\"}[$__rate_interval]))",
+          "legendFormat": "{{device}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sda"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "SSD Kingston · 120 GB · sda"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sdb"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "HDD WD #1 · 1 TB · sdb"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sdc"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "HDD WD #2 · 1 TB · sdc"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "Dischi fisici: sda = SSD Kingston da 120 GB; sdb e sdc = due HDD Western Digital da 1 TB. Ogni HDD partecipa sia al RAID di sistema sia al RAID dati. Questi grafici non sommano nuovamente le metriche dei dispositivi RAID."
+    },
+    {
+      "id": 22,
+      "title": "Carico medio · riferimento: 12 CPU logiche",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 80,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max without (pod) (node_load1)",
+          "legendFormat": "Load 1m"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "Load average a 1 minuto: task in esecuzione o in attesa non interrompibile, incluso I/O. Non è una percentuale. La macchina dispone di 12 CPU logiche."
+    },
+    {
+      "id": 23,
+      "title": "ARC: job in esecuzione",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 88,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "gha_running_jobs",
+          "legendFormat": "{{actions_github_com_scale_set_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner standard · max 10"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc-gpu"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner GPU · max 1"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 24,
+      "title": "ARC: runner desiderati",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 88,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "gha_desired_runners",
+          "legendFormat": "{{actions_github_com_scale_set_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner standard · max 10"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc-gpu"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner GPU · max 1"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 25,
+      "title": "ARC: runner disponibili",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 96,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "gha_idle_runners",
+          "legendFormat": "{{actions_github_com_scale_set_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner standard · max 10"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc-gpu"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner GPU · max 1"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 26,
+      "title": "ARC: avvio job p95",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 96,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by(le,actions_github_com_scale_set_name)(rate(gha_job_startup_duration_seconds_bucket[$__rate_interval])))",
+          "legendFormat": "{{actions_github_com_scale_set_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner standard · max 10"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc-gpu"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner GPU · max 1"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "Tempo entro cui viene avviato il 95% dei job osservati nella finestra. Se non ci sono nuovi avvii nella finestra, il percentile può non essere disponibile."
+    },
+    {
+      "id": 27,
+      "title": "Pod in Pending",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 104,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(namespace)(kube_pod_status_phase{phase=\"Pending\"})",
+          "legendFormat": "{{namespace}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 28,
+      "title": "Restart container (1h)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 104,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(namespace,pod)(increase(kube_pod_container_status_restarts_total[1h]))",
+          "legendFormat": "{{namespace}} / {{pod}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 29,
+      "title": "Pressione CPU per pod",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 112,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * sum by(namespace,pod)(rate(container_pressure_cpu_waiting_seconds_total{pod!=\"\",container=\"\",id=~\".*pod[^/]+[.]slice\"}[$__rate_interval]))",
+          "legendFormat": "{{namespace}} / {{pod}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "PSI: percentuale di tempo in cui il lavoro resta in attesa di una risorsa. Some = almeno un task in attesa; full = tutti i task non inattivi bloccati. Non indica semplicemente quanto la risorsa è utilizzata."
+    },
+    {
+      "id": 30,
+      "title": "Pressione RAM per pod",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 112,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * sum by(namespace,pod)(rate(container_pressure_memory_waiting_seconds_total{pod!=\"\",container=\"\",id=~\".*pod[^/]+[.]slice\"}[$__rate_interval]))",
+          "legendFormat": "{{namespace}} / {{pod}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "PSI: percentuale di tempo in cui il lavoro resta in attesa di una risorsa. Some = almeno un task in attesa; full = tutti i task non inattivi bloccati. Non indica semplicemente quanto la risorsa è utilizzata."
+    }
+  ],
+  "description": "Spazio runner: blocchi allocati, campionamento 120s. Verificare età e successo raccolta. PVC locali non impongono quote. Disco fisico e RAID non vanno sommati."
+}
