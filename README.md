@@ -214,6 +214,10 @@ With the image as is, Task, uv and Python are found without downloading. Two kin
 
 `apt-get install` of packages that are already installed works even without `apt-get update`: it reports "already the newest version" and exits 0.
 
+## CI monitoring
+
+Dedicated Prometheus and Grafana monitor node/pod pressure, filesystem capacity, ARC activity and allocated SSD bytes per runner volume. Historical data lives on HDD; Grafana is available over Tailscale with login. See [monitoring setup and operations](monitoring/README.md).
+
 ## Operations
 
 ### Applying changes to the scale sets

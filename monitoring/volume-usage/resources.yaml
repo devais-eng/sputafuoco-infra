@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: ci-volume-usage, namespace: monitoring}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: ci-volume-usage}
+  template:
+    metadata:
+      labels: {app: ci-volume-usage}
+    spec:
+      nodeSelector: {kubernetes.io/hostname: sputafuoco}
+      automountServiceAccountToken: false
+      containers:
+        - name: collector
+          image: python:3.13-slim
+          command: [nice, '-n', '19', python3, /app/collector.py]
+          env:
+            - {name: NODE_NAME, value: sputafuoco}
+          ports: [{name: metrics, containerPort: 9108}]
+          securityContext:
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL], add: [DAC_READ_SEARCH]}
+            seccompProfile: {type: RuntimeDefault}
+          resources:
+            requests: {cpu: 10m, memory: 32Mi}
+            limits: {cpu: 100m, memory: 128Mi}
+          readinessProbe:
+            httpGet: {path: /healthz, port: metrics}
+          volumeMounts:
+            - {name: ssd, mountPath: /ssd, readOnly: true}
+            - {name: code, mountPath: /app, readOnly: true}
+      volumes:
+        - name: ssd
+          hostPath: {path: /srv/runner-ssd, type: Directory}
+        - name: code
+          configMap: {name: ci-volume-usage-code}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ci-volume-usage
+  namespace: monitoring
+  labels: {app: ci-volume-usage}
+spec:
+  selector: {app: ci-volume-usage}
+  ports: [{name: metrics, port: 9108, targetPort: metrics}]
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ci-volume-usage
+  namespace: monitoring
+  labels: {release: ci-monitoring}
+spec:
+  selector:
+    matchLabels: {app: ci-volume-usage}
+  endpoints:
+    - port: metrics
+      honorLabels: true
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: arc
+  namespace: monitoring
+  labels: {release: ci-monitoring}
+spec:
+  namespaceSelector:
+    matchNames: [arc-systems]
+  selector:
+    matchExpressions:
+      - key: app.kubernetes.io/component
+        operator: In
+        values: [controller-manager, runner-scale-set-listener]
+  podTargetLabels: [actions.github.com/scale-set-name]
+  podMetricsEndpoints:
+    - portNumber: 8080
+      path: /metrics
