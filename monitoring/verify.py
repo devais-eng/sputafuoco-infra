@@ -20,7 +20,7 @@ for panel in d['panels']:
  assert r['status']=='success',r
  count=len(r['data']['result'])
  print('QUERY',panel['title'],'series=',count)
- if panel['title'] not in ['Spazio allocato per runner e volume','ARC: avvio job p95']:
+ if panel['title'] not in ['Spazio SSD per runner · workspace e Docker','ARC: avvio job p95']:
   assert count>0, 'Missing metric: '+panel['title']
 password=os.environ.get('GRAFANA_PASSWORD')
 if password is None:
