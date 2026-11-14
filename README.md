@@ -9,8 +9,9 @@ Self-hosted GitHub Actions runners for the `devais-eng` organization: a single-n
 | k3s (single server) | `v1.37.2+k3s1` | — | [Install](#install-from-scratch) |
 | Helm | `v4.3.2` | — | — |
 | ARC controller (`gha-runner-scale-set-controller`) | `0.15.1` | `arc-systems` | — |
-| Scale set `sputafuoco-arc` (label `sallo`, max 8 runners) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc.yaml` |
+| Scale set `sputafuoco-arc` (label `sallo`, max 6 runners) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc.yaml` |
 | Scale set `sputafuoco-arc-gpu` (label `sallo-gpu`, max 1 runner) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc-gpu.yaml` |
+| Dedicated SSD local-path provisioner (`runner-ssd`) | `0.0.37` | `arc-runners` | `arc/runner-ssd-provisioner.yaml` |
 | Docker Hub pull-through cache (`registry:3`) | — | `arc-runners` | `registry-mirror/registry-mirror.yaml` |
 | NVIDIA device plugin | `0.20.1` | `nvidia-device-plugin` | `nvidia/values-device-plugin.yaml` |
 | Runner image `ghcr.io/devais-eng/arc-runner-sallo` | — | — | `runner-image/` |
@@ -24,15 +25,19 @@ runs-on: sallo-gpu    # jobs that use the GPU directly in the runner container
 
 ## Design notes
 
-- **Storage is the bottleneck.** The node's large data volume is HDD-backed, and test suites that start databases are fsync-heavy. CPU and memory allow more runners than the disk does: with 4-5 concurrent runners `/proc/pressure/io` already showed `full avg60` above 50%. `maxRunners` is 8; before raising it further, measure I/O pressure (`cat /proc/pressure/io`, `iostat -x 5`) during a full CI run, and lower it if jobs get slower rather than faster.
+- **SSD space and I/O bound concurrency.** Job workspaces and Docker data use the roughly 60 GiB SSD partition, with a maximum of **6 regular runners + 1 GPU runner**. Existing job samples used about 5 GiB per regular runner, but peak usage and GPU jobs still need measurement. Before raising concurrency, measure free bytes/inodes and I/O pressure during a full CI run. System images, other pod volumes and the registry cache still use their existing storage.
 - **Ephemeral runners.** Every job gets a fresh pod and a fresh Docker daemon. Nothing leaks between jobs, but nothing is cached either: the runner image and the pull-through cache exist to win that time back.
 - **Where data lives:**
 
 | Data | Path |
 |---|---|
 | k3s state (SQLite) and system images (containerd) | `/var/lib/rancher/k3s` (root filesystem) |
-| Pod `emptyDir` volumes: job workspaces, the dind `/var/lib/docker` | `/srv/data/kubelet` |
+| Per-pod job workspace and dind `/var/lib/docker` | `/srv/runner-ssd` (`/dev/sda3`, ext4, mounted by UUID) |
+| Remaining pod `emptyDir` volumes: dind socket and externals | `/srv/data/kubelet` |
 | Pull-through cache | `/srv/data/ci-cache/registry` |
+| .NET crash reports | `/srv/data/ci-cache/dotnet-crash` |
+
+The workspace and Docker volumes are **generic ephemeral volumes**: each pod owns fresh PVCs, and deletion of the pod triggers PVC garbage collection and the provisioner's `Delete` reclaim policy. Cleanup is asynchronous and waits for the pod to terminate; monitor stuck pods/PVs rather than deleting their data manually. The requests of 4 GiB for workspace and 3 GiB for Docker are **not enforced quotas** with local-path-provisioner. The SSD is not RAID-backed; it holds disposable job data.
 
 ## Install from scratch
 
@@ -96,7 +101,34 @@ shred -u /path/to/key.pem
 sudo k3s kubectl apply -f registry-mirror/registry-mirror.yaml
 ```
 
-The runners' dind daemons use it through `--registry-mirror=http://registry-mirror.arc-runners.svc.cluster.local:5000`. It saves downloads and Docker Hub rate limit, not disk writes: each pod still extracts the layers into its own `emptyDir`. A proxy-mode registry is read-only, so it cannot host images of our own.
+The runners' dind daemons use it through `--registry-mirror=http://registry-mirror.arc-runners.svc.cluster.local:5000`. It saves downloads and Docker Hub rate limit, not disk writes: each pod still extracts the layers into its own ephemeral SSD volume. A proxy-mode registry is read-only, so it cannot host images of our own.
+
+### 5a. SSD storage for runners
+
+On the existing node, `/dev/sda3` is already formatted and mounted at `/srv/runner-ssd`; **do not reformat it**. On a fresh installation, inspect the partition table and prepare a dedicated ext4 filesystem first, preserving the EFI and system RAID partitions. Mount the filesystem by its own UUID in `/etc/fstab`, for example:
+
+```fstab
+UUID=<SSD_FILESYSTEM_UUID> /srv/runner-ssd ext4 defaults,noatime,nofail,x-systemd.device-timeout=10s 0 2
+```
+
+After mounting, verify that the source is the intended SSD filesystem. Create its marker only on that mounted filesystem, then install the provisioner:
+
+```bash
+findmnt --mountpoint /srv/runner-ssd
+# Run the following only after checking the source device above.
+sudo sh -ec '
+  mountpoint -q /srv/runner-ssd
+  uuid=$(findmnt -nro UUID --mountpoint /srv/runner-ssd)
+  test -n "$uuid"
+  printf "%s\n" "$uuid" > /srv/runner-ssd/.runner-ssd-volume
+  chmod 0444 /srv/runner-ssd/.runner-ssd-volume
+'
+sudo k3s kubectl apply -f arc/runner-ssd-provisioner.yaml
+sudo k3s kubectl -n arc-runners rollout status deployment/runner-ssd-provisioner
+sudo k3s kubectl get storageclass runner-ssd
+```
+
+The dedicated provisioner serves only node `sputafuoco` and leaves k3s's default `local-path` class unchanged. It uses local PVs with `WaitForFirstConsumer` and `Delete`. Its helper scripts reject missing mount markers, unexpected paths and symlinks, preventing new runner data from silently falling back to the root filesystem when the SSD is not mounted. The marker must remain at the SSD root, outside all per-PVC directories. Do not unmount the SSD or remove the provisioner while SSD-backed pods or PVs remain.
 
 ### 6. Regular scale set
 
@@ -107,7 +139,7 @@ sudo helm --kubeconfig $K install sputafuoco-arc --namespace arc-runners \
 
 The values are the chart's own expanded `containerMode: dind` template, plus:
 
-- an `emptyDir` on the dind `/var/lib/docker`, so images and volumes of the jobs land on the data disk instead of the container's writable layer on the root filesystem;
+- generic ephemeral SSD volumes for `/home/runner/_work` and the dind `/var/lib/docker`, so each job gets isolated workspace, images and Docker volumes that are removed after its pod is deleted;
 - `--registry-mirror` pointing at the pull-through cache;
 - the runner image from this repository, with `imagePullPolicy: Always` (see [Runner image](#runner-image)).
 
@@ -142,7 +174,7 @@ The node label stands in for Node Feature Discovery: the device plugin's DaemonS
 
 How it works:
 
-- The runner exports `RUNNER_TOOL_CACHE` to the jobs. By default it is `_work/_tool`, on the pod's empty `emptyDir`; the image sets it to `/opt/hostedtoolcache` and pre-seeds it with the exact layout `@actions/tool-cache` writes and looks up: `task/<version>/x64/bin/task` and `uv/<version>/x86_64/{uv,uvx}`, each with its `<arch>.complete` marker. `setup-task` and `setup-uv` then find them and skip the download.
+- The runner exports `RUNNER_TOOL_CACHE` to the jobs. By default it is `_work/_tool`, on the pod's fresh workspace volume; the image sets it to `/opt/hostedtoolcache` and pre-seeds it with the exact layout `@actions/tool-cache` writes and looks up: `task/<version>/x64/bin/task` and `uv/<version>/x86_64/{uv,uvx}`, each with its `<arch>.complete` marker. `setup-task` and `setup-uv` then find them and skip the download.
 - The versions must match the ones the workflows pin. A mismatch is harmless: the action downloads its own copy, as without the image.
 - Every download in the Dockerfile is verified against the checksum published with its release.
 - BtbN's `latest` release is rolling, so each build picks up the newest patch release of the FFmpeg branch, as the setup action does.
@@ -193,6 +225,8 @@ scripts/upgrade-scale-sets.sh <ref>      # or from a branch, tag or commit SHA
 
 It reads `arc/values-*.yaml` from GitHub at a pinned commit, so the node needs no checkout, runs `helm upgrade` on both scale sets and prints the image each one runs. It asks for the sudo password once.
 
+The values preserve SSD workspace/Docker volumes and the 6+1 limits. The script does not prepare disks or install the storage provisioner: complete [SSD storage for runners](#5a-ssd-storage-for-runners) first on a fresh node. If the provisioner manifest changes, apply it separately before updating the scale sets. Existing runner pods keep their old volumes until they terminate; the updated template applies to new pods.
+
 ### Changing a scale set's labels or name
 
 GitHub fixes a scale set's labels when it is **created**; `helm upgrade` only updates the Kubernetes resource. To change them, uninstall and reinstall the scale set. It is re-registered with a new ID, and queued jobs are reassigned.
@@ -211,6 +245,10 @@ Every other value (template, `maxRunners`, image) applies with `helm upgrade`.
 sudo k3s kubectl -n arc-systems get pods                       # controller and listeners
 sudo k3s kubectl -n arc-runners get ephemeralrunners,pods      # runners and their jobs
 sudo k3s kubectl -n arc-systems logs -l app.kubernetes.io/component=runner-scale-set-listener --tail=20
+sudo k3s kubectl -n arc-runners get pvc                      # per-runner SSD claims
+sudo k3s kubectl get pv                                     # check cleanup of finished pods
+df -h /srv/runner-ssd                                       # free bytes
+df -i /srv/runner-ssd                                       # free inodes
 ```
 
 If jobs stay queued while the listener logs `totalAssignedJobs=0`, GitHub is not matching the scale set to the job's `runs-on`. The usual cause is a missing label: see above.
