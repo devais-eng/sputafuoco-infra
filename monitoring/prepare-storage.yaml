@@ -1,0 +1,41 @@
+# One-shot creation of application data directories on the existing HDD filesystem.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ci-monitoring-prepare-storage
+  namespace: monitoring
+spec:
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      nodeSelector: {kubernetes.io/hostname: sputafuoco}
+      containers:
+        - name: prepare
+          image: rancher/mirrored-library-busybox:1.37.0
+          command:
+            - sh
+            - -ec
+            - |
+              test "$(df -P /data | awk 'NR==2 {print $1}')" = /dev/md1p1
+              for name in prometheus grafana alertmanager; do
+                test ! -L "/data/monitoring/$name"
+              done
+              test ! -L /data/monitoring
+              mkdir -p /data/monitoring/prometheus /data/monitoring/grafana /data/monitoring/alertmanager
+              chown 1000:2000 /data/monitoring/prometheus /data/monitoring/alertmanager
+              chown 472:472 /data/monitoring/grafana
+              chmod 0750 /data/monitoring/prometheus /data/monitoring/grafana /data/monitoring/alertmanager
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            requests: {cpu: 10m, memory: 16Mi}
+            limits: {memory: 64Mi}
+      volumes:
+        - name: data
+          hostPath:
+            path: /srv/data
+            type: Directory

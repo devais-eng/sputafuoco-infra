@@ -1,0 +1,41 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: ci-pressure
+  namespace: monitoring
+  labels:
+    release: ci-monitoring
+spec:
+  groups:
+  - name: ci-pressure
+    rules:
+    - alert: CIRunnerSSDLowSpace
+      expr: node_filesystem_avail_bytes{mountpoint="/srv/runner-ssd"} / node_filesystem_size_bytes{mountpoint="/srv/runner-ssd"}
+        < 0.2
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: 'SSD runner: meno del 20% disponibile'
+    - alert: CIVolumeCollectorStale
+      expr: time() - ci_runner_volume_collection_timestamp_seconds > 360 or ci_runner_volume_collection_success
+        == 0
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: Misurazione spazio runner non aggiornata
+    - alert: CIHighIOPressure
+      expr: rate(node_pressure_io_stalled_seconds_total[5m]) > 0.2
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: Pressione I/O full superiore al 20%
+    - alert: CIVolumeCollectorDown
+      expr: absent(ci_runner_volume_collection_success)
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: Collector spazio runner assente
