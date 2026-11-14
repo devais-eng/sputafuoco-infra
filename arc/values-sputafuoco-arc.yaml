@@ -8,7 +8,7 @@ githubConfigSecret: github-app
 runnerScaleSetName: sputafuoco-arc
 scaleSetLabels: ["sallo"]
 minRunners: 0
-maxRunners: 8
+maxRunners: 3
 
 template:
   spec:
