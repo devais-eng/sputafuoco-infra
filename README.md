@@ -24,7 +24,7 @@ runs-on: sallo-gpu    # jobs that use the GPU directly in the runner container
 
 ## Design notes
 
-- **Storage is the bottleneck.** The node's large data volume is HDD-backed, and test suites that start databases are fsync-heavy. Runner concurrency is kept deliberately low; raise `maxRunners` only after measuring I/O pressure (`cat /proc/pressure/io`, `iostat -x 5`) during a full CI run.
+- **Storage is the bottleneck.** The node's large data volume is HDD-backed, and test suites that start databases are fsync-heavy. CPU and memory allow more runners than the disk does: with 4-5 concurrent runners `/proc/pressure/io` already showed `full avg60` above 50%. `maxRunners` is 8; before raising it further, measure I/O pressure (`cat /proc/pressure/io`, `iostat -x 5`) during a full CI run, and lower it if jobs get slower rather than faster.
 - **Ephemeral runners.** Every job gets a fresh pod and a fresh Docker daemon. Nothing leaks between jobs, but nothing is cached either: the runner image and the pull-through cache exist to win that time back.
 - **Where data lives:**
 
