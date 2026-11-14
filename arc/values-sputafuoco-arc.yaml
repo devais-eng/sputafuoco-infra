@@ -1,6 +1,6 @@
 # gha-runner-scale-set 0.15.1 — sputafuoco-arc (label sallo)
 # Expanded dind template (from the chart's own containerMode=dind template), plus:
-#   - /var/lib/docker on an emptyDir (kubelet root-dir = /srv/data/kubelet), not the root fs
+#   - workspace and /var/lib/docker on per-pod SSD volumes (StorageClass runner-ssd)
 #   - Docker Hub pull-through mirror
 #   - the runner image built by this repository, re-pulled for every job (latest + Always)
 githubConfigUrl: https://github.com/devais-eng
@@ -8,7 +8,7 @@ githubConfigSecret: github-app
 runnerScaleSetName: sputafuoco-arc
 scaleSetLabels: ["sallo"]
 minRunners: 0
-maxRunners: 8
+maxRunners: 6
 
 template:
   spec:
@@ -86,13 +86,31 @@ template:
             mountPath: /dotnet-crash
     volumes:
       - name: work
-        emptyDir: {}
+        # A fresh PVC per pod; Delete reclaim policy removes its data after pod deletion.
+        # The storage request is not an enforced quota with local-path-provisioner.
+        ephemeral:
+          volumeClaimTemplate:
+            spec:
+              accessModes: [ReadWriteOnce]
+              storageClassName: runner-ssd
+              resources:
+                requests:
+                  storage: 4Gi
       - name: dind-sock
         emptyDir: {}
       - name: dind-externals
         emptyDir: {}
       - name: dind-storage
-        emptyDir: {}
+        # A fresh PVC per pod; Delete reclaim policy removes its data after pod deletion.
+        # The storage request is not an enforced quota with local-path-provisioner.
+        ephemeral:
+          volumeClaimTemplate:
+            spec:
+              accessModes: [ReadWriteOnce]
+              storageClassName: runner-ssd
+              resources:
+                requests:
+                  storage: 3Gi
       - name: dotnet-crash
         hostPath:
           path: /srv/data/ci-cache/dotnet-crash
