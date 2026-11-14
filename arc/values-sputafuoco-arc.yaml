@@ -8,7 +8,7 @@ githubConfigSecret: github-app
 runnerScaleSetName: sputafuoco-arc
 scaleSetLabels: ["sallo"]
 minRunners: 0
-maxRunners: 1
+maxRunners: 8
 
 template:
   spec:
@@ -76,7 +76,7 @@ template:
           - name: DOTNET_DbgMiniDumpName
             value: /dotnet-crash/%e-%p-%t.dmp
         resources:
-          requests: { cpu: "2", memory: 4Gi }
+          requests: { cpu: "1", memory: 2560Mi }
         volumeMounts:
           - name: work
             mountPath: /home/runner/_work
