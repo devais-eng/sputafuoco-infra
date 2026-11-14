@@ -1,0 +1,147 @@
+fullnameOverride: ci-monitoring
+kubeEtcd:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeProxy:
+  enabled: false
+defaultRules:
+  rules:
+    etcd: false
+    kubeSchedulerAlerting: false
+    kubeSchedulerRecording: false
+    kubeControllerManager: false
+    kubeProxy: false
+    windows: false
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+prometheus:
+  prometheusSpec:
+    scrapeInterval: 30s
+    evaluationInterval: 30s
+    retention: 7d
+    retentionSize: 5GB
+    walCompression: true
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        memory: 2Gi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: monitoring-hdd
+          accessModes:
+          - ReadWriteOnce
+          selector:
+            matchLabels:
+              monitoring-volume: prometheus
+          resources:
+            requests:
+              storage: 10Gi
+    nodeSelector:
+      kubernetes.io/hostname: sputafuoco
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        memory: 128Mi
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: monitoring-hdd
+          accessModes:
+          - ReadWriteOnce
+          selector:
+            matchLabels:
+              monitoring-volume: alertmanager
+          resources:
+            requests:
+              storage: 1Gi
+    nodeSelector:
+      kubernetes.io/hostname: sputafuoco
+grafana:
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+  persistence:
+    enabled: true
+    storageClassName: monitoring-hdd
+    volumeName: ci-monitoring-grafana
+    size: 2Gi
+  deploymentStrategy:
+    type: Recreate
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+  nodeSelector:
+    kubernetes.io/hostname: sputafuoco
+  defaultDashboardsTimezone: Europe/Rome
+  service:
+    type: ClusterIP
+  grafana.ini:
+    analytics:
+      reporting_enabled: false
+      check_for_updates: false
+    users:
+      allow_sign_up: false
+    auth.anonymous:
+      enabled: false
+    dashboards:
+      default_home_dashboard_path: /tmp/dashboards/sputafuoco-ci.json
+    server:
+      domain: sputafuoco.taila2a202.ts.net
+      root_url: http://sputafuoco.taila2a202.ts.net:3000/
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: monitoring
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        memory: 128Mi
+  startupProbe:
+    httpGet:
+      path: /api/health
+      port: grafana
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 120
+  env:
+    GF_DATABASE_WAL: 'true'
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 32Mi
+    limits:
+      memory: 128Mi
+prometheus-node-exporter:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 32Mi
+    limits:
+      memory: 128Mi
+  extraArgs:
+  - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker/.+|var/lib/kubelet/.+|srv/data/kubelet/.+)($|/)
+  - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$
+  service:
+    listenOnAllInterfaces: false
