@@ -243,7 +243,7 @@ data:
     "uid": "prometheus"}, "targets": [{"refId": "A", "expr": "gha_running_jobs", "legendFormat":
     "{{actions_github_com_scale_set_name}}"}], "fieldConfig": {"defaults": {"unit":
     "short"}, "overrides": [{"matcher": {"id": "byName", "options": "sputafuoco-arc"},
-    "properties": [{"id": "displayName", "value": "Runner standard · max 6"}]}, {"matcher":
+    "properties": [{"id": "displayName", "value": "Runner standard · max 10"}]}, {"matcher":
     {"id": "byName", "options": "sputafuoco-arc-gpu"}, "properties": [{"id": "displayName",
     "value": "Runner GPU · max 1"}]}]}, "options": {"legend": {"displayMode": "table",
     "placement": "bottom", "calcs": ["lastNotNull"]}, "tooltip": {"mode": "multi"}}},
@@ -252,7 +252,7 @@ data:
     "prometheus"}, "targets": [{"refId": "A", "expr": "gha_desired_runners", "legendFormat":
     "{{actions_github_com_scale_set_name}}"}], "fieldConfig": {"defaults": {"unit":
     "short"}, "overrides": [{"matcher": {"id": "byName", "options": "sputafuoco-arc"},
-    "properties": [{"id": "displayName", "value": "Runner standard · max 6"}]}, {"matcher":
+    "properties": [{"id": "displayName", "value": "Runner standard · max 10"}]}, {"matcher":
     {"id": "byName", "options": "sputafuoco-arc-gpu"}, "properties": [{"id": "displayName",
     "value": "Runner GPU · max 1"}]}]}, "options": {"legend": {"displayMode": "table",
     "placement": "bottom", "calcs": ["lastNotNull"]}, "tooltip": {"mode": "multi"}}},
@@ -261,7 +261,7 @@ data:
     "prometheus"}, "targets": [{"refId": "A", "expr": "gha_idle_runners", "legendFormat":
     "{{actions_github_com_scale_set_name}}"}], "fieldConfig": {"defaults": {"unit":
     "short"}, "overrides": [{"matcher": {"id": "byName", "options": "sputafuoco-arc"},
-    "properties": [{"id": "displayName", "value": "Runner standard · max 6"}]}, {"matcher":
+    "properties": [{"id": "displayName", "value": "Runner standard · max 10"}]}, {"matcher":
     {"id": "byName", "options": "sputafuoco-arc-gpu"}, "properties": [{"id": "displayName",
     "value": "Runner GPU · max 1"}]}]}, "options": {"legend": {"displayMode": "table",
     "placement": "bottom", "calcs": ["lastNotNull"]}, "tooltip": {"mode": "multi"}}},
@@ -270,7 +270,7 @@ data:
     "targets": [{"refId": "A", "expr": "histogram_quantile(0.95, sum by(le,actions_github_com_scale_set_name)(rate(gha_job_startup_duration_seconds_bucket[$__rate_interval])))",
     "legendFormat": "{{actions_github_com_scale_set_name}}"}], "fieldConfig": {"defaults":
     {"unit": "s"}, "overrides": [{"matcher": {"id": "byName", "options": "sputafuoco-arc"},
-    "properties": [{"id": "displayName", "value": "Runner standard · max 6"}]}, {"matcher":
+    "properties": [{"id": "displayName", "value": "Runner standard · max 10"}]}, {"matcher":
     {"id": "byName", "options": "sputafuoco-arc-gpu"}, "properties": [{"id": "displayName",
     "value": "Runner GPU · max 1"}]}]}, "options": {"legend": {"displayMode": "table",
     "placement": "bottom", "calcs": ["lastNotNull"]}, "tooltip": {"mode": "multi"}},
