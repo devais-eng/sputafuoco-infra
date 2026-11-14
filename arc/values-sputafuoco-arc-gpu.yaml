@@ -14,6 +14,8 @@ maxRunners: 1
 template:
   spec:
     runtimeClassName: nvidia
+    nodeSelector:
+      kubernetes.io/hostname: sputafuoco
     initContainers:
       # .NET crash reports land on the node, so they outlive the pod (see dotnet-crash below).
       - name: init-dotnet-crash-dir
@@ -64,6 +66,9 @@ template:
         imagePullPolicy: Always
         command: ["/home/runner/run.sh"]
         env:
+          # Opt-in path consumed by the repository setup action; no global UV_CACHE_DIR.
+          - name: UV_SHARED_CACHE_DIR
+            value: /opt/uv-cache
           - name: DOCKER_HOST
             value: unix:///var/run/docker.sock
           - name: RUNNER_WAIT_FOR_DOCKER_IN_SECONDS
@@ -89,6 +94,8 @@ template:
             mountPath: /var/run
           - name: dotnet-crash
             mountPath: /dotnet-crash
+          - name: uv-cache
+            mountPath: /opt/uv-cache
     volumes:
       - name: work
         # A fresh PVC per pod; Delete reclaim policy removes its data after pod deletion.
@@ -120,3 +127,9 @@ template:
         hostPath:
           path: /srv/data/ci-cache/dotnet-crash
           type: DirectoryOrCreate
+
+      # Pre-create on the mounted HDD; never silently create it on the root disk.
+      - name: uv-cache
+        hostPath:
+          path: /srv/data/ci-cache/uv
+          type: Directory
