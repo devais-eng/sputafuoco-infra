@@ -24,4 +24,4 @@
 
 ## Verification
 
-Installed on sputafuoco: 17/17 Prometheus targets up; all 30 dashboard queries valid; required metrics nonempty; authenticated Grafana dashboard API verified; all three persistent claims bound. Collector: 12 tests passing. Helm template and shell syntax checks passing; independent review fixes incorporated. Private backend bound to 127.0.0.1:13000. Final Tailscale Serve activation requires the user sudo command documented in monitoring/README.md.
+Installed on sputafuoco: 17/17 Prometheus targets up; all 30 dashboard queries valid; required metrics nonempty; authenticated Grafana dashboard API verified; all three persistent claims bound. Collector: 12 tests passing. Helm template and shell syntax checks passing; independent review fixes incorporated. Private backend bound to 127.0.0.1:13000. Tailscale Serve activated and verified as tailnet-only. Authenticated browser rendering checked; disk/volume legends clarified and historical exporter-pod labels deduplicated.

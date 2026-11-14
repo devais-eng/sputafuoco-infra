@@ -1,6 +1,6 @@
 {
   "uid": "sputafuoco-ci",
-  "title": "Sputafuoco \u00b7 CI",
+  "title": "Sputafuoco · CI",
   "schemaVersion": 39,
   "version": 1,
   "timezone": "Europe/Rome",
@@ -71,7 +71,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes",
+          "expr": "max without (pod) (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)",
           "legendFormat": "RAM"
         }
       ],
@@ -111,7 +111,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "node_memory_MemAvailable_bytes",
+          "expr": "max without (pod) (node_memory_MemAvailable_bytes)",
           "legendFormat": "Disponibile"
         }
       ],
@@ -151,7 +151,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes",
+          "expr": "max without (pod) (node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes)",
           "legendFormat": "Swap"
         }
       ],
@@ -191,7 +191,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "node_filesystem_size_bytes{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"} - node_filesystem_free_bytes{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"}",
+          "expr": "max without (pod) (node_filesystem_size_bytes{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"} - node_filesystem_free_bytes{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"})",
           "legendFormat": "{{mountpoint}}"
         }
       ],
@@ -199,7 +199,65 @@
         "defaults": {
           "unit": "bytes"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Sistema · RAID1 · / (md0)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/srv/data"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Dati · RAID1 · /srv/data (md1p1)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/srv/runner-ssd"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner · SSD · /srv/runner-ssd (sda3)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -212,7 +270,8 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "Tre filesystem distinti. Sistema: md0, mirror su SSD e due HDD. Dati: md1p1, mirror sui due HDD. Runner: sda3, partizione SSD dedicata e non replicata. Le capacità dei filesystem sono espresse in unità binarie; le etichette dei dischi fisici indicano la capacità commerciale."
     },
     {
       "id": 6,
@@ -231,7 +290,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "node_filesystem_avail_bytes{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"}",
+          "expr": "max without (pod) (node_filesystem_avail_bytes{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"})",
           "legendFormat": "{{mountpoint}}"
         }
       ],
@@ -239,7 +298,65 @@
         "defaults": {
           "unit": "bytes"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Sistema · RAID1 · / (md0)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/srv/data"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Dati · RAID1 · /srv/data (md1p1)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/srv/runner-ssd"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner · SSD · /srv/runner-ssd (sda3)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -252,11 +369,12 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "Tre filesystem distinti. Sistema: md0, mirror su SSD e due HDD. Dati: md1p1, mirror sui due HDD. Runner: sda3, partizione SSD dedicata e non replicata. Le capacità dei filesystem sono espresse in unità binarie; le etichette dei dischi fisici indicano la capacità commerciale."
     },
     {
       "id": 7,
-      "title": "Filesystem: capacit\u00e0 totale",
+      "title": "Filesystem: capacità totale",
       "type": "timeseries",
       "gridPos": {
         "x": 0,
@@ -271,7 +389,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "node_filesystem_size_bytes{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"}",
+          "expr": "max without (pod) (node_filesystem_size_bytes{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"})",
           "legendFormat": "{{mountpoint}}"
         }
       ],
@@ -279,7 +397,65 @@
         "defaults": {
           "unit": "bytes"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Sistema · RAID1 · / (md0)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/srv/data"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Dati · RAID1 · /srv/data (md1p1)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/srv/runner-ssd"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner · SSD · /srv/runner-ssd (sda3)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -292,7 +468,8 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "Tre filesystem distinti. Sistema: md0, mirror su SSD e due HDD. Dati: md1p1, mirror sui due HDD. Runner: sda3, partizione SSD dedicata e non replicata. Le capacità dei filesystem sono espresse in unità binarie; le etichette dei dischi fisici indicano la capacità commerciale."
     },
     {
       "id": 8,
@@ -311,7 +488,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "100 * (1-node_filesystem_files_free{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"}/node_filesystem_files{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"})",
+          "expr": "max without (pod) (100 * (1-node_filesystem_files_free{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"}/node_filesystem_files{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"}))",
           "legendFormat": "{{mountpoint}}"
         }
       ],
@@ -319,7 +496,65 @@
         "defaults": {
           "unit": "percent"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Sistema · RAID1 · / (md0)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/srv/data"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Dati · RAID1 · /srv/data (md1p1)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/srv/runner-ssd"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner · SSD · /srv/runner-ssd (sda3)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -332,7 +567,8 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "Tre filesystem distinti. Sistema: md0, mirror su SSD e due HDD. Dati: md1p1, mirror sui due HDD. Runner: sda3, partizione SSD dedicata e non replicata. Le capacità dei filesystem sono espresse in unità binarie; le etichette dei dischi fisici indicano la capacità commerciale."
     },
     {
       "id": 9,
@@ -351,7 +587,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "100 * rate(node_pressure_cpu_waiting_seconds_total[$__rate_interval])",
+          "expr": "max without (pod) (100 * rate(node_pressure_cpu_waiting_seconds_total[$__rate_interval]))",
           "legendFormat": "CPU"
         }
       ],
@@ -372,7 +608,8 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "PSI: percentuale di tempo in cui il lavoro resta in attesa di una risorsa. Some = almeno un task in attesa; full = tutti i task non inattivi bloccati. Non indica semplicemente quanto la risorsa è utilizzata."
     },
     {
       "id": 10,
@@ -391,7 +628,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "100 * rate(node_pressure_memory_waiting_seconds_total[$__rate_interval])",
+          "expr": "max without (pod) (100 * rate(node_pressure_memory_waiting_seconds_total[$__rate_interval]))",
           "legendFormat": "RAM"
         }
       ],
@@ -412,7 +649,8 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "PSI: percentuale di tempo in cui il lavoro resta in attesa di una risorsa. Some = almeno un task in attesa; full = tutti i task non inattivi bloccati. Non indica semplicemente quanto la risorsa è utilizzata."
     },
     {
       "id": 11,
@@ -431,7 +669,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "100 * rate(node_pressure_io_waiting_seconds_total[$__rate_interval])",
+          "expr": "max without (pod) (100 * rate(node_pressure_io_waiting_seconds_total[$__rate_interval]))",
           "legendFormat": "I/O some"
         }
       ],
@@ -452,7 +690,8 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "PSI: percentuale di tempo in cui il lavoro resta in attesa di una risorsa. Some = almeno un task in attesa; full = tutti i task non inattivi bloccati. Non indica semplicemente quanto la risorsa è utilizzata."
     },
     {
       "id": 12,
@@ -471,7 +710,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "100 * rate(node_pressure_io_stalled_seconds_total[$__rate_interval])",
+          "expr": "max without (pod) (100 * rate(node_pressure_io_stalled_seconds_total[$__rate_interval]))",
           "legendFormat": "I/O full"
         }
       ],
@@ -492,11 +731,12 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "PSI: percentuale di tempo in cui il lavoro resta in attesa di una risorsa. Some = almeno un task in attesa; full = tutti i task non inattivi bloccati. Non indica semplicemente quanto la risorsa è utilizzata."
     },
     {
       "id": 13,
-      "title": "CPU per pod",
+      "title": "CPU per pod · core utilizzati",
       "type": "timeseries",
       "gridPos": {
         "x": 0,
@@ -532,7 +772,8 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "1 core = un processore logico occupato. Sputafuoco dispone di 12 processori logici. Include tutti i namespace, anche il monitoraggio."
     },
     {
       "id": 14,
@@ -572,7 +813,8 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "Working set: memoria in uso meno la cache inattiva recuperabile. Include tutti i namespace. Non è la memoria richiesta o il limite configurato nel pod."
     },
     {
       "id": 15,
@@ -612,11 +854,12 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "PSI: percentuale di tempo in cui il lavoro resta in attesa di una risorsa. Some = almeno un task in attesa; full = tutti i task non inattivi bloccati. Non indica semplicemente quanto la risorsa è utilizzata."
     },
     {
       "id": 16,
-      "title": "Spazio allocato per runner e volume",
+      "title": "Spazio SSD per runner · workspace e Docker",
       "type": "timeseries",
       "gridPos": {
         "x": 12,
@@ -632,14 +875,39 @@
         {
           "refId": "A",
           "expr": "ci_runner_volume_used_bytes",
-          "legendFormat": "{{pod}} / {{volume}}"
+          "legendFormat": "{{pod}} · {{volume}}"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "bytes"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".* · work$"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "${__field.labels.pod} · Workspace"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".* · dind-storage$"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "${__field.labels.pod} · Docker"
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -652,11 +920,12 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "Blocchi realmente allocati, campionati ogni 120 secondi. Workspace e dati Docker sono separati. Controllare sempre età e stato della raccolta nei pannelli successivi. Nessuna quota viene imposta dalle richieste dei PVC."
     },
     {
       "id": 17,
-      "title": "Et\u00e0 rilevamento spazio runner",
+      "title": "Età rilevamento spazio runner",
       "type": "timeseries",
       "gridPos": {
         "x": 0,
@@ -672,7 +941,7 @@
         {
           "refId": "A",
           "expr": "time() - ci_runner_volume_collection_timestamp_seconds",
-          "legendFormat": "Et\u00e0"
+          "legendFormat": "Età"
         }
       ],
       "fieldConfig": {
@@ -692,7 +961,8 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "Secondi trascorsi dall’ultima scansione completa riuscita. Una scansione avviene ogni 120 secondi; oltre 360 secondi i valori devono essere considerati obsoleti."
     },
     {
       "id": 18,
@@ -717,7 +987,22 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "short"
+          "unit": "short",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "Errore",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "OK",
+                  "color": "green"
+                }
+              }
+            }
+          ]
         },
         "overrides": []
       },
@@ -732,7 +1017,8 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "1 = ultima scansione riuscita; 0 = errore. In caso di errore gli ultimi valori restano visibili, ma possono essere obsoleti."
     },
     {
       "id": 19,
@@ -751,7 +1037,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "rate(node_disk_read_bytes_total{device=~\"sd[a-c]\"}[$__rate_interval])",
+          "expr": "max without (pod) (rate(node_disk_read_bytes_total{device=~\"sd[a-c]\"}[$__rate_interval]))",
           "legendFormat": "{{device}}"
         }
       ],
@@ -759,7 +1045,44 @@
         "defaults": {
           "unit": "Bps"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sda"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "SSD Kingston · 120 GB · sda"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sdb"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "HDD WD #1 · 1 TB · sdb"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sdc"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "HDD WD #2 · 1 TB · sdc"
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -772,7 +1095,8 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "Dischi fisici: sda = SSD Kingston da 120 GB; sdb e sdc = due HDD Western Digital da 1 TB. Ogni HDD partecipa sia al RAID di sistema sia al RAID dati. Questi grafici non sommano nuovamente le metriche dei dispositivi RAID."
     },
     {
       "id": 20,
@@ -791,7 +1115,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "rate(node_disk_written_bytes_total{device=~\"sd[a-c]\"}[$__rate_interval])",
+          "expr": "max without (pod) (rate(node_disk_written_bytes_total{device=~\"sd[a-c]\"}[$__rate_interval]))",
           "legendFormat": "{{device}}"
         }
       ],
@@ -799,7 +1123,44 @@
         "defaults": {
           "unit": "Bps"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sda"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "SSD Kingston · 120 GB · sda"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sdb"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "HDD WD #1 · 1 TB · sdb"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sdc"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "HDD WD #2 · 1 TB · sdc"
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -812,7 +1173,8 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "Dischi fisici: sda = SSD Kingston da 120 GB; sdb e sdc = due HDD Western Digital da 1 TB. Ogni HDD partecipa sia al RAID di sistema sia al RAID dati. Questi grafici non sommano nuovamente le metriche dei dispositivi RAID."
     },
     {
       "id": 21,
@@ -831,7 +1193,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "100 * rate(node_disk_io_time_seconds_total{device=~\"sd[a-c]\"}[$__rate_interval])",
+          "expr": "max without (pod) (100 * rate(node_disk_io_time_seconds_total{device=~\"sd[a-c]\"}[$__rate_interval]))",
           "legendFormat": "{{device}}"
         }
       ],
@@ -839,7 +1201,44 @@
         "defaults": {
           "unit": "percent"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sda"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "SSD Kingston · 120 GB · sda"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sdb"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "HDD WD #1 · 1 TB · sdb"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sdc"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "HDD WD #2 · 1 TB · sdc"
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -852,11 +1251,12 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "Dischi fisici: sda = SSD Kingston da 120 GB; sdb e sdc = due HDD Western Digital da 1 TB. Ogni HDD partecipa sia al RAID di sistema sia al RAID dati. Questi grafici non sommano nuovamente le metriche dei dispositivi RAID."
     },
     {
       "id": 22,
-      "title": "Load average",
+      "title": "Carico medio · riferimento: 12 CPU logiche",
       "type": "timeseries",
       "gridPos": {
         "x": 12,
@@ -871,7 +1271,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "node_load1",
+          "expr": "max without (pod) (node_load1)",
           "legendFormat": "Load 1m"
         }
       ],
@@ -892,7 +1292,8 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "Load average a 1 minuto: task in esecuzione o in attesa non interrompibile, incluso I/O. Non è una percentuale. La macchina dispone di 12 CPU logiche."
     },
     {
       "id": 23,
@@ -919,7 +1320,32 @@
         "defaults": {
           "unit": "short"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner standard · max 6"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc-gpu"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner GPU · max 1"
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -959,7 +1385,32 @@
         "defaults": {
           "unit": "short"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner standard · max 6"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc-gpu"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner GPU · max 1"
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -999,7 +1450,32 @@
         "defaults": {
           "unit": "short"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner standard · max 6"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc-gpu"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner GPU · max 1"
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -1039,7 +1515,32 @@
         "defaults": {
           "unit": "s"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner standard · max 6"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc-gpu"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner GPU · max 1"
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -1052,7 +1553,8 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "Tempo entro cui viene avviato il 95% dei job osservati nella finestra. Se non ci sono nuovi avvii nella finestra, il percentile può non essere disponibile."
     },
     {
       "id": 27,
@@ -1172,7 +1674,8 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "PSI: percentuale di tempo in cui il lavoro resta in attesa di una risorsa. Some = almeno un task in attesa; full = tutti i task non inattivi bloccati. Non indica semplicemente quanto la risorsa è utilizzata."
     },
     {
       "id": 30,
@@ -1212,8 +1715,9 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "description": "PSI: percentuale di tempo in cui il lavoro resta in attesa di una risorsa. Some = almeno un task in attesa; full = tutti i task non inattivi bloccati. Non indica semplicemente quanto la risorsa è utilizzata."
     }
   ],
-  "description": "Spazio runner: blocchi allocati, campionamento 120s. Verificare et\u00e0 e successo raccolta. PVC locali non impongono quote. Disco fisico e RAID non vanno sommati."
+  "description": "Spazio runner: blocchi allocati, campionamento 120s. Verificare età e successo raccolta. PVC locali non impongono quote. Disco fisico e RAID non vanno sommati."
 }
