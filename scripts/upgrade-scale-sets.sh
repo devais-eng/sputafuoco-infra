@@ -41,8 +41,10 @@ sudo -v   # ask for the password once, up front
 
 for set in "${SCALE_SETS[@]}"; do
   echo "--- helm upgrade $set"
+  # --force-conflicts: take back fields changed by hand (e.g. kubectl patch of maxRunners),
+  # which Helm's server-side apply would otherwise refuse to overwrite.
   sudo helm --kubeconfig "$KUBECONFIG_PATH" upgrade "$set" "$CHART" \
-    --namespace "$NAMESPACE" --version "$CHART_VERSION" -f "$tmp/$set.yaml"
+    --namespace "$NAMESPACE" --version "$CHART_VERSION" -f "$tmp/$set.yaml" --force-conflicts
 done
 
 echo "--- runner image per scale set"
