@@ -1,6 +1,6 @@
 # Standard runner resource budgets
 
-The standard scale set keeps `maxRunners: 10` and `minRunners: 0`.
+The standard scale set keeps `maxRunners: 10` and `minRunners: 6`. ARC targets six idle runners plus assigned jobs, capped at ten total. Runners remain ephemeral and are replaced after each job.
 
 | Container | CPU request | CPU limit | Memory request | Memory limit |
 |---|---:|---:|---:|---:|
