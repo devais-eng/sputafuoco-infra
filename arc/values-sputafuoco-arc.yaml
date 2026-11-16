@@ -32,7 +32,7 @@ template:
       - name: dind
         resources:
           requests: { cpu: "150m", memory: 256Mi }
-          limits: { cpu: "1", memory: 4Gi }
+          limits: { cpu: "2", memory: 4Gi }
         image: docker:dind
         # Privileged DinD sees the host cgroup hierarchy. Keep its daemon and
         # Docker children beneath this container's CPU/memory budget.
@@ -104,7 +104,7 @@ template:
             value: /dotnet-crash/%e-%p-%t.dmp
         resources:
           requests: { cpu: "750m", memory: 2Gi }
-          limits: { cpu: "4", memory: 3Gi }
+          limits: { cpu: "3", memory: 3Gi }
         volumeMounts:
           - name: work
             mountPath: /home/runner/_work
