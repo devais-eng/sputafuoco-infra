@@ -32,7 +32,7 @@ template:
       - name: dind
         resources:
           requests: { cpu: "150m", memory: 256Mi }
-          limits: { cpu: "1", memory: 768Mi }
+          limits: { cpu: "1", memory: 2Gi }
         image: docker:dind
         # Privileged DinD sees the host cgroup hierarchy. Keep its daemon and
         # Docker children beneath this container's CPU/memory budget.
