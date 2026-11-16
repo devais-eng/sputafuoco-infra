@@ -8,7 +8,7 @@ githubConfigSecret: github-app
 runnerScaleSetName: sputafuoco-arc
 scaleSetLabels: ["sallo"]
 minRunners: 6
-maxRunners: 10
+maxRunners: 6
 
 template:
   spec:
@@ -32,7 +32,7 @@ template:
       - name: dind
         resources:
           requests: { cpu: "150m", memory: 256Mi }
-          limits: { cpu: "1", memory: 2Gi }
+          limits: { cpu: "1", memory: 4Gi }
         image: docker:dind
         # Privileged DinD sees the host cgroup hierarchy. Keep its daemon and
         # Docker children beneath this container's CPU/memory budget.

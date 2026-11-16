@@ -9,7 +9,7 @@ Self-hosted GitHub Actions runners for the `devais-eng` organization: a single-n
 | k3s (single server) | `v1.37.2+k3s1` | — | [Install](#install-from-scratch) |
 | Helm | `v4.3.2` | — | — |
 | ARC controller (`gha-runner-scale-set-controller`) | `0.15.1` | `arc-systems` | — |
-| Scale set `sputafuoco-arc` (label `sallo`, min 6 / max 10 runners) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc.yaml` |
+| Scale set `sputafuoco-arc` (label `sallo`, min 6 / max 6 runners) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc.yaml` |
 | Scale set `sputafuoco-arc-gpu` (label `sallo-gpu`, max 1 runner) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc-gpu.yaml` |
 | Dedicated SSD local-path provisioner (`runner-ssd`) | `0.0.37` | `arc-runners` | `arc/runner-ssd-provisioner.yaml` |
 | Docker Hub pull-through cache (`registry:3`) | — | `arc-runners` | `registry-mirror/registry-mirror.yaml` |
@@ -25,8 +25,8 @@ runs-on: sallo-gpu    # jobs that use the GPU directly in the runner container
 
 ## Design notes
 
-- **SSD space and I/O bound concurrency.** Job workspaces and Docker data use the roughly 60 GiB SSD partition, with a maximum of **10 regular runners + 1 GPU runner**. Existing job samples used about 5 GiB per regular runner, but peak usage and GPU jobs still need measurement. Before raising concurrency, measure free bytes/inodes and I/O pressure during a full CI run. System images, other pod volumes and the registry cache still use their existing storage.
-- **CPU runner resource budgets.** Each standard job requests 900m CPU and 2.25 GiB RAM in total. The runner container requests 750m/2 GiB and is capped at 4 CPUs/3 GiB; persistent DinD requests 150m/256 MiB and is capped at 1 CPU/2 GiB, including its nested Docker containers. These are separate budgets. CPU limits throttle; memory limits may cause OOM failures. Ten jobs can collectively exceed physical RAM if all approach their limits; requests and limits do not guarantee that every peak can occur simultaneously. GPU runner sizing is separate. See [budget implementation and verification](arc/resource-budgets.md).
+- **SSD space and I/O bound concurrency.** Job workspaces and Docker data use the roughly 60 GiB SSD partition, with a maximum of **6 regular runners + 1 GPU runner**. Existing job samples used about 5 GiB per regular runner, but peak usage and GPU jobs still need measurement. Before raising concurrency, measure free bytes/inodes and I/O pressure during a full CI run. System images, other pod volumes and the registry cache still use their existing storage.
+- **CPU runner resource budgets.** Each standard job requests 900m CPU and 2.25 GiB RAM in total. The runner container requests 750m/2 GiB and is capped at 4 CPUs/3 GiB; persistent DinD requests 150m/256 MiB and is capped at 1 CPU/4 GiB, including its nested Docker containers. These are separate budgets. CPU limits throttle; memory limits may cause OOM failures. Six jobs can collectively exceed physical RAM if all approach their limits; requests and limits do not guarantee that every peak can occur simultaneously. GPU runner sizing is separate. See [budget implementation and verification](arc/resource-budgets.md).
 - **Ephemeral runners.** Every job gets a fresh pod and a fresh Docker daemon. Nothing leaks between jobs, but nothing is cached either: the runner image and the pull-through cache exist to win that time back.
 - **Where data lives:**
 
@@ -230,7 +230,7 @@ scripts/upgrade-scale-sets.sh <ref>      # or from a branch, tag or commit SHA
 
 It reads `arc/values-*.yaml` from GitHub at a pinned commit, so the node needs no checkout, runs `helm upgrade` on both scale sets and prints the image each one runs. It asks for the sudo password once.
 
-The values preserve SSD workspace/Docker volumes and the 10+1 limits. The script does not prepare disks or install the storage provisioner: complete [SSD storage for runners](#5a-ssd-storage-for-runners) first on a fresh node. If the provisioner manifest changes, apply it separately before updating the scale sets. Existing runner pods keep their old volumes until they terminate; the updated template applies to new pods.
+The values preserve SSD workspace/Docker volumes and the 6+1 limits. The script does not prepare disks or install the storage provisioner: complete [SSD storage for runners](#5a-ssd-storage-for-runners) first on a fresh node. If the provisioner manifest changes, apply it separately before updating the scale sets. Existing runner pods keep their old volumes until they terminate; the updated template applies to new pods.
 
 ### Changing a scale set's labels or name
 

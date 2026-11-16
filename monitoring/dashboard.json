@@ -1329,7 +1329,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Runner standard · min 6 / max 10"
+                "value": "Runner standard · min 6 / max 6"
               }
             ]
           },
@@ -1394,7 +1394,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Runner standard · min 6 / max 10"
+                "value": "Runner standard · min 6 / max 6"
               }
             ]
           },
@@ -1459,7 +1459,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Runner standard · min 6 / max 10"
+                "value": "Runner standard · min 6 / max 6"
               }
             ]
           },
@@ -1524,7 +1524,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Runner standard · min 6 / max 10"
+                "value": "Runner standard · min 6 / max 6"
               }
             ]
           },
