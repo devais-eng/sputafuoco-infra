@@ -5,7 +5,7 @@ The standard scale set keeps `maxRunners: 10` and `minRunners: 6`. ARC targets s
 | Container | CPU request | CPU limit | Memory request | Memory limit |
 |---|---:|---:|---:|---:|
 | runner | 750m | 4 | 2 GiB | 3 GiB |
-| dind | 150m | 1 | 256 MiB | 768 MiB |
+| dind | 150m | 1 | 256 MiB | 2 GiB |
 
 Requests total 900m CPU and 2.25 GiB per job. Budgets are separate: spare runner capacity is not lent to DinD. CPU excess is throttled; memory excess can cause OOM failures. Summed limits across ten jobs exceed host memory; these limits bound individual jobs, not simultaneous peak demand. The GPU scale set is unchanged.
 
@@ -17,7 +17,7 @@ The wrapper detects its containerd scope, moves the daemon process into a `docke
 
 The wrapper fails early on unsupported cgroup layouts. The PID is read with a shell builtin instead of double-dollar syntax, which Kubernetes expands in container arguments. The normal Docker entrypoint, startup probe and Unix socket are retained. This config targets trusted CI jobs; privileged DinD and Docker's explicit per-container cgroup-parent override are not a security boundary.
 
-## Verification performed on sputafuoco
+## Initial delegation verification performed on sputafuoco (768 MiB limit)
 
 - An isolated pod cloned from the live runner template used the proposed limits and a sleeping runner, without GitHub registration.
 - Runner kernel limits: `cpu.max=400000 100000`, `memory.max=3221225472`.
@@ -28,6 +28,12 @@ The wrapper fails early on unsupported cgroup layouts. The PID is read with a sh
 - The PID executing `RUN sleep 13` during a Docker build was observed beneath `<DinD scope>/buildkit/...`.
 - Kubernetes exec and the Docker startup probe still worked after moving the daemon into its child cgroup.
 
-The initial 768 MiB DinD budget needs validation against real jobs now that Docker children are correctly accounted. Its historical daemon-only memory peak is not evidence that all Docker workloads fit. Monitor OOMs, restarts, throttling and job durations before treating this sizing as settled.
+## Memory budget correction (2026-11-16)
 
-Rollback through Helm should restore the previous complete values (including the original DinD command/args), not only remove limits. New templates apply to new runner pods; existing jobs are not migrated in place.
+The framework-only smoke job 133357261387 failed after the kernel killed dockerd and PostgreSQL within the 768 MiB DinD cgroup. Daemon-only historical metrics had underestimated the budget for nested containers.
+
+A local `task ci:smoke:framework` run from the requested OmneX-openai-yaml checkout passed all 11 tests in 23.66 seconds (35.73 seconds including installation/checks). Sampling new Docker cgroups every 200 ms measured a simultaneous aggregate `memory.current` peak of 734.55 MiB, including tmpfs and page cache but excluding the host Docker daemon. Aggregate working memory peaked at 726.75 MiB. GNU time reported maximum RSS of 700.57 MiB for the test command tree's largest individual process, separately from Docker; this is not aggregate runner memory.
+
+DinD now has a 2 GiB limit to leave room for Docker and startup peaks. The local run is evidence for this smoke suite, not a guarantee for every build or simultaneous load from ten jobs. Requests remain unchanged; ten runners can have a combined 50 GiB memory ceiling on the roughly 30 GiB host. Continue monitoring node pressure, kernel OOMs and job duration; a zero cAdvisor OOM counter did not exclude the observed kernel OOM kills.
+
+For rollback of the delegation change, restore the previous complete values, including the original DinD command/args. A memory-only rollback can restore the previous limit, but 768 MiB is known to fail this workload. Helm templates apply to new pods. On this cluster, existing DinD sidecars can receive the memory-limit increase through the Pod resize subresource; verify the actual kernel limit and container restart count after resizing.
