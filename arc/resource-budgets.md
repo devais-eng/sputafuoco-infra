@@ -1,13 +1,13 @@
 # Standard runner resource budgets
 
-The standard scale set keeps `maxRunners: 10` and `minRunners: 6`. ARC targets six idle runners plus assigned jobs, capped at ten total. Runners remain ephemeral and are replaced after each job.
+The standard scale set keeps `maxRunners: 6` and `minRunners: 6`. ARC targets six idle runners plus assigned jobs, capped at six total. Runners remain ephemeral and are replaced after each job.
 
 | Container | CPU request | CPU limit | Memory request | Memory limit |
 |---|---:|---:|---:|---:|
 | runner | 750m | 4 | 2 GiB | 3 GiB |
-| dind | 150m | 1 | 256 MiB | 2 GiB |
+| dind | 150m | 1 | 256 MiB | 4 GiB |
 
-Requests total 900m CPU and 2.25 GiB per job. Budgets are separate: spare runner capacity is not lent to DinD. CPU excess is throttled; memory excess can cause OOM failures. Summed limits across ten jobs exceed host memory; these limits bound individual jobs, not simultaneous peak demand. The GPU scale set is unchanged.
+Requests total 900m CPU and 2.25 GiB per job. Budgets are separate: spare runner capacity is not lent to DinD. CPU excess is throttled; memory excess can cause OOM failures. Summed limits across six jobs exceed host memory; these limits bound individual jobs, not simultaneous peak demand. The GPU scale set is unchanged.
 
 ## Why the DinD startup wrapper is required
 
@@ -34,6 +34,16 @@ The framework-only smoke job 133357261387 failed after the kernel killed dockerd
 
 A local `task ci:smoke:framework` run from the requested OmneX-openai-yaml checkout passed all 11 tests in 23.66 seconds (35.73 seconds including installation/checks). Sampling new Docker cgroups every 200 ms measured a simultaneous aggregate `memory.current` peak of 734.55 MiB, including tmpfs and page cache but excluding the host Docker daemon. Aggregate working memory peaked at 726.75 MiB. GNU time reported maximum RSS of 700.57 MiB for the test command tree's largest individual process, separately from Docker; this is not aggregate runner memory.
 
-DinD now has a 2 GiB limit to leave room for Docker and startup peaks. The local run is evidence for this smoke suite, not a guarantee for every build or simultaneous load from ten jobs. Requests remain unchanged; ten runners can have a combined 50 GiB memory ceiling on the roughly 30 GiB host. Continue monitoring node pressure, kernel OOMs and job duration; a zero cAdvisor OOM counter did not exclude the observed kernel OOM kills.
+DinD was initially increased to 2 GiB to leave room for Docker and startup peaks. The local run is evidence for this smoke suite, not a guarantee for every build or simultaneous load from ten jobs. Requests remain unchanged; with the current 4 GiB DinD limit, six runners can have a combined 42 GiB memory ceiling on the roughly 30 GiB host. Continue monitoring node pressure, kernel OOMs and job duration; a zero cAdvisor OOM counter did not exclude the observed kernel OOM kills.
 
 For rollback of the delegation change, restore the previous complete values, including the original DinD command/args. A memory-only rollback can restore the previous limit, but 768 MiB is known to fail this workload. Helm templates apply to new pods. On this cluster, existing DinD sidecars can receive the memory-limit increase through the Pod resize subresource; verify the actual kernel limit and container restart count after resizing.
+
+## Increase to 4 GiB after sallo-ai OOMs
+
+Two further cgroup OOM episodes occurred at 14:55 and 16:04 UTC on 2026-11-16, both while running the sallo-ai test module with a 2 GiB DinD limit. Available node memory remained at least 11.6 GiB over the observation period; these were container-limit failures, not host-wide RAM exhaustion. Increase DinD to 4 GiB for all standard runners. Keep runner memory at 3 GiB, all requests and CPU limits unchanged, and min/max runners now at 6/6. GPU sizing remains separate.
+
+The 4 GiB cap is a monitored trial, not a reservation or a guarantee that every workload fits. Watch kernel OOMs, container restarts and node memory availability; reduce concurrency if simultaneous peaks cause host pressure. Disk I/O pressure is a separate bottleneck that this memory change does not address.
+
+## Concurrency reduced to six standard runners
+
+After the 4 GiB increase, no further kernel OOMs were observed through 21:33 UTC on 2026-11-16. Several tests nevertheless hit subprocess/startup timeouts. During 17:20–18:08 UTC, node I/O full pressure had a median of 57.82% and a peak of 83.76%, with at least 12.29 GiB RAM available and negligible runner CPU throttling. Reduce maxRunners from 10 to 6 while retaining minRunners=6 and the 4 GiB DinD cap. This is a concurrency trial to reduce I/O contention, not proof that every test failure was caused by the node. ARC manages scale-down; do not forcibly delete busy runners.
