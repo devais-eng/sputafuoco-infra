@@ -7,7 +7,7 @@ githubConfigUrl: https://github.com/devais-eng
 githubConfigSecret: github-app
 runnerScaleSetName: sputafuoco-arc
 scaleSetLabels: ["sallo"]
-minRunners: 0
+minRunners: 6
 maxRunners: 10
 
 template:
