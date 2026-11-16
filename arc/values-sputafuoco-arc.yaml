@@ -30,8 +30,30 @@ template:
           - name: dind-externals
             mountPath: /home/runner/tmpDir
       - name: dind
+        resources:
+          requests: { cpu: "150m", memory: 256Mi }
+          limits: { cpu: "1", memory: 768Mi }
         image: docker:dind
+        # Privileged DinD sees the host cgroup hierarchy. Keep its daemon and
+        # Docker children beneath this container's CPU/memory budget.
+        command: ["/bin/sh", "-ec"]
         args:
+          - |
+            cg=$(sed -n 's/^0:://p' /proc/self/cgroup)
+            case "$cg" in
+              /kubepods.slice/*/cri-containerd-*.scope) ;;
+              *) echo "Unsupported DinD cgroup: $cg" >&2; exit 1 ;;
+            esac
+            root="/sys/fs/cgroup$cg"
+            test -f "$root/memory.max"
+            mkdir -p "$root/dockerd"
+            # Read our PID without Kubernetes' double-dollar argument expansion.
+            read -r self_pid rest < /proc/self/stat
+            echo "$self_pid" > "$root/dockerd/cgroup.procs"
+            # Domain controllers require the parent to have no direct processes.
+            echo '+cpu +memory +pids' > "$root/cgroup.subtree_control"
+            exec /usr/local/bin/dockerd-entrypoint.sh "$@" --cgroup-parent="$cg"
+          - --
           - dockerd
           - --host=unix:///var/run/docker.sock
           - --group=$(DOCKER_GROUP_GID)
@@ -81,7 +103,8 @@ template:
           - name: DOTNET_DbgMiniDumpName
             value: /dotnet-crash/%e-%p-%t.dmp
         resources:
-          requests: { cpu: "1", memory: 2560Mi }
+          requests: { cpu: "750m", memory: 2Gi }
+          limits: { cpu: "4", memory: 3Gi }
         volumeMounts:
           - name: work
             mountPath: /home/runner/_work
