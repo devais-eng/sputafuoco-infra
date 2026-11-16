@@ -4,8 +4,8 @@ The standard scale set keeps `maxRunners: 6` and `minRunners: 6`. ARC targets si
 
 | Container | CPU request | CPU limit | Memory request | Memory limit |
 |---|---:|---:|---:|---:|
-| runner | 750m | 4 | 2 GiB | 3 GiB |
-| dind | 150m | 1 | 256 MiB | 4 GiB |
+| runner | 750m | 3 | 2 GiB | 3 GiB |
+| dind | 150m | 2 | 256 MiB | 4 GiB |
 
 Requests total 900m CPU and 2.25 GiB per job. Budgets are separate: spare runner capacity is not lent to DinD. CPU excess is throttled; memory excess can cause OOM failures. Summed limits across six jobs exceed host memory; these limits bound individual jobs, not simultaneous peak demand. The GPU scale set is unchanged.
 
@@ -47,3 +47,7 @@ The 4 GiB cap is a monitored trial, not a reservation or a guarantee that every 
 ## Concurrency reduced to six standard runners
 
 After the 4 GiB increase, no further kernel OOMs were observed through 21:33 UTC on 2026-11-16. Several tests nevertheless hit subprocess/startup timeouts. During 17:20–18:08 UTC, node I/O full pressure had a median of 57.82% and a peak of 83.76%, with at least 12.29 GiB RAM available and negligible runner CPU throttling. Reduce maxRunners from 10 to 6 while retaining minRunners=6 and the 4 GiB DinD cap. This is a concurrency trial to reduce I/O contention, not proof that every test failure was caused by the node. ARC manages scale-down; do not forcibly delete busy runners.
+
+## CPU limits redistributed between runner and DinD
+
+Standard runner CPU limits are now 3 cores for the runner and 2 cores for DinD, including its nested Docker workloads. Requests remain 750m and 150m respectively. This preserves the combined ceiling of 5 cores per job while allowing Docker services more CPU headroom; it does not allocate exclusive cores. Memory limits remain 3 GiB/4 GiB and the standard pool stays at min/max 6. Historical delegation checks above record the original 4/1 CPU limits.
