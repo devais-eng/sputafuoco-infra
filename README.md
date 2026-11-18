@@ -260,7 +260,7 @@ If jobs stay queued while the listener logs `totalAssignedJobs=0`, GitHub is not
 
 ## Shared uv cache on HDD
 
-Run `sudo bash scripts/prepare-uv-cache.sh` on sputafuoco before applying the ARC values. The script verifies the data filesystem UUID and creates `/srv/data/ci-cache/uv` for runner UID/GID 1001 with mode 0750. Both scale sets mount it at `/opt/uv-cache` and advertise `UV_SHARED_CACHE_DIR`; workspaces and virtual environments remain on ephemeral SSD volumes. The runner is pinned to sputafuoco.
+Run `sudo env EXPECTED_DATA_UUID=<verified-data-filesystem-uuid> bash scripts/prepare-uv-cache.sh` on sputafuoco before applying the ARC values. The script verifies the data filesystem UUID and creates `/srv/data/ci-cache/uv` for runner UID/GID 1001 with mode 0750. Both scale sets mount it at `/opt/uv-cache` and advertise `UV_SHARED_CACHE_DIR`; workspaces and virtual environments remain on ephemeral SSD volumes. The runner is pinned to sputafuoco.
 
 The repository setup action must explicitly opt into this path, disable GitHub cache restore/save and per-job pruning, and use `UV_LINK_MODE=copy` only for shared-cache jobs. Do not set `UV_CACHE_DIR` globally: release/tag and other sensitive jobs must retain their isolated temporary cache. Existing workflows keep their current behavior until the action supports this contract. The mount itself is writable by jobs: this is not a security boundary for untrusted code; use a separate scale set without this mount when isolation is required.
 
