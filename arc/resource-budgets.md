@@ -1,6 +1,6 @@
 # Standard runner resource budgets
 
-The SSD/tmpfs experiment uses two separate scale sets, each with minRunners=maxRunners=1. The SSD pool retains label `sallo`; the tmpfs pool uses `sallo-tmpfs`. Runners remain ephemeral and are replaced after each job. Active jobs drain with their previous limits during migration.
+The SSD/tmpfs experiment uses two separate scale sets, each with minRunners=maxRunners=1. The SSD pool retains label `sallo`; the tmpfs pool also uses `sallo`. Runners remain ephemeral and are replaced after each job. Active jobs drain with their previous limits during migration.
 
 | Container (both pools) | CPU request | CPU limit | Memory request | Memory limit |
 |---|---:|---:|---:|---:|

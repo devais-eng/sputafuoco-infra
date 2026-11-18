@@ -10,7 +10,7 @@ Self-hosted GitHub Actions runners for the `devais-eng` organization: a single-n
 | Helm | `v4.3.2` | — | — |
 | ARC controller (`gha-runner-scale-set-controller`) | `0.15.1` | `arc-systems` | — |
 | Scale set `sputafuoco-arc` (label `sallo`, min 1 / max 1 runner) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc.yaml` |
-| Scale set `sputafuoco-arc-tmpfs` (label `sallo-tmpfs`, min 1 / max 1 runner) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc-tmpfs.yaml` |
+| Scale set `sputafuoco-arc-tmpfs` (label `sallo`, min 1 / max 1 runner) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc-tmpfs.yaml` |
 | Scale set `sputafuoco-arc-gpu` (label `sallo-gpu`, max 1 runner) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc-gpu.yaml` |
 | Dedicated SSD local-path provisioner (`runner-ssd`) | `0.0.37` | `arc-runners` | `arc/runner-ssd-provisioner.yaml` |
 | Docker Hub pull-through cache (`registry:3`) | — | `arc-runners` | `registry-mirror/registry-mirror.yaml` |

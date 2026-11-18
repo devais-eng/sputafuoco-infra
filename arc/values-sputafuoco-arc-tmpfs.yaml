@@ -1,4 +1,4 @@
-# gha-runner-scale-set 0.15.1 — sputafuoco-arc-tmpfs (label sallo-tmpfs)
+# gha-runner-scale-set 0.15.1 — sputafuoco-arc-tmpfs (label sallo)
 # Expanded dind template (from the chart's own containerMode=dind template), plus:
 #   - workspace on 4 GiB tmpfs; /var/lib/docker on a per-pod SSD volume
 #   - Docker Hub pull-through mirror
@@ -6,7 +6,7 @@
 githubConfigUrl: https://github.com/devais-eng
 githubConfigSecret: github-app
 runnerScaleSetName: sputafuoco-arc-tmpfs
-scaleSetLabels: ["sallo-tmpfs"]
+scaleSetLabels: ["sallo"]
 minRunners: 1
 maxRunners: 1
 
