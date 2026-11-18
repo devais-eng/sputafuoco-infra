@@ -128,8 +128,8 @@ template:
           path: /srv/data/ci-cache/dotnet-crash
           type: DirectoryOrCreate
 
-      # Pre-create on the mounted HDD; never silently create it on the root disk.
+      # Pre-create on the mounted SSD; never silently create it on the root disk.
       - name: uv-cache
         hostPath:
-          path: /srv/data/ci-cache/uv
+          path: /srv/runner-ssd/ci-cache/uv
           type: Directory

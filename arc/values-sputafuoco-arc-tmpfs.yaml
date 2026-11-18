@@ -32,7 +32,7 @@ template:
       - name: dind
         resources:
           requests: { cpu: "150m", memory: 256Mi }
-          limits: { cpu: "2", memory: 4Gi }
+          limits: { cpu: "2", memory: 5Gi }
         image: docker:dind
         # Privileged DinD sees the host cgroup hierarchy. Keep its daemon and
         # Docker children beneath this container's CPU/memory budget.
@@ -140,8 +140,8 @@ template:
           path: /srv/data/ci-cache/dotnet-crash
           type: DirectoryOrCreate
 
-      # Pre-create on the mounted HDD; never silently create it on the root disk.
+      # Pre-create on the mounted SSD; never silently create it on the root disk.
       - name: uv-cache
         hostPath:
-          path: /srv/data/ci-cache/uv
+          path: /srv/runner-ssd/ci-cache/uv
           type: Directory
