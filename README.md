@@ -25,6 +25,8 @@ runs-on: sallo-gpu    # jobs that use the GPU directly in the runner container
 
 ## Design notes
 
+Grafana has a 1536 MiB memory limit to avoid repeated SSD reads caused by cache eviction at the former 512 MiB cap. See the [measured CI I/O analysis](monitoring/io-analysis-2026-11-18.txt) for the before/after evidence and the proposed workspace experiment.
+
 - **SSD space and I/O bound concurrency.** Job workspaces and Docker data use the roughly 60 GiB SSD partition, with a maximum of **6 regular runners + 1 GPU runner**. Existing job samples used about 5 GiB per regular runner, but peak usage and GPU jobs still need measurement. Before raising concurrency, measure free bytes/inodes and I/O pressure during a full CI run. System images, other pod volumes and the registry cache still use their existing storage.
 - **CPU runner resource budgets.** Each standard job requests 900m CPU and 2.25 GiB RAM in total. The runner container requests 750m/2 GiB and is capped at 3 CPUs/3 GiB; persistent DinD requests 150m/256 MiB and is capped at 2 CPUs/4 GiB, including its nested Docker containers. These are separate budgets. CPU limits throttle; memory limits may cause OOM failures. Six jobs can collectively exceed physical RAM if all approach their limits; requests and limits do not guarantee that every peak can occur simultaneously. GPU runner sizing is separate. See [budget implementation and verification](arc/resource-budgets.md).
 - **Ephemeral runners.** Every job gets a fresh pod and a fresh Docker daemon. Nothing leaks between jobs, but nothing is cached either: the runner image and the pull-through cache exist to win that time back.

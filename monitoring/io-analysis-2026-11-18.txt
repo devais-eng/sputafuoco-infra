@@ -1,0 +1,66 @@
+Sputafuoco CI I/O analysis — 2026-11-18
+
+Method
+Two consecutive ~3 minute windows sampled cgroup io.stat, memory.stat,
+memory.events, memory.current and /proc/diskstats every five seconds.
+Container IDs were mapped to Kubernetes pods before/after each window.
+Physical sda counters are not summed with md0 counters (same underlying I/O).
+Concurrent CI jobs changed between windows; this is not an end-to-end A/B
+benchmark of identical jobs. The Grafana process stayed the same throughout.
+
+PostgreSQL
+Verified docker inspect and df inside a live test PostgreSQL container:
+PGDATA=/var/lib/postgresql/data is tmpfs; about 304 MiB used at inspection.
+The test compose also disables fsync, synchronous_commit and full_page_writes.
+Moving all DinD storage to RAM would not directly move these database files:
+they are already in RAM. Docker images/layers and other services still use SSD.
+
+Baseline, 182.7 seconds, Grafana memory limit 512 MiB
+Physical SSD writes attributed to runner containers: 4130 MiB.
+Physical SSD writes attributed to DinD containers: 2594 MiB.
+Grafana physical SSD reads: 941.50 MiB; its reads also appear under md0.
+Prometheus had no observed SSD I/O in this window (its data is on HDD RAID).
+Volume collector: 4.70 MiB SSD reads, 26.18 MiB charged SSD writes.
+Whole sda3: 571.86 MiB read, 7152.66 MiB written.
+Grafana hit its cgroup memory limit 5622 times and incurred 241103 file-page
+refaults. In the last 60.4 seconds it read 333.398 MiB and hit the limit 1990 times.
+
+Same Grafana process, limit raised in place to 1 GiB, 181.3 seconds
+No container restart during this resize.
+Reads over the full window: 279.793 MiB, including cache warm-up.
+Last 60.5 seconds: 0.488 MiB read; zero memory-limit events throughout the window.
+Peak cgroup memory: 831524864 bytes (~793 MiB), above the previous 512 MiB cap.
+This strongly supports cache eviction/re-reading caused by the former limit.
+It does not prove that all node latency or CI timeouts were caused by Grafana.
+The final requested production cap is 1536 MiB, with requests unchanged.
+
+Observed complete GitHub job timeline
+https://github.com/devais-eng/sallo/actions/runs/44278423262/job/134735159454
+Framework-only smoke succeeded, 11 tests passed.
+Job: 11:48:02–11:53:39 UTC (5m37s).
+uv sync: 11:48:45–11:50:01 UTC; installation of 184 packages alone took 66s.
+Framework install check: 11:50:01–11:50:19 UTC.
+pytest reported 175.76s; its duration includes fixture/service startup.
+The I/O baseline overlaps installation and service/test startup; it does not
+cover every second from pod creation to deletion. No speedup for this job is
+claimed from the Grafana change, which occurred near its completion.
+
+Storage observations and limits
+sda is the Kingston SATA SSD shared by system RAID md0 and runner partition sda3.
+Short iostat samples before profiling saw 320–590 ms mean write latency on sda.
+md0 and md1 had all RAID members active. No matching ATA/I/O/ext4 errors were
+found in the examined two-day kernel log; fstrim.timer is active.
+SMART health was not checked: smartctl was absent and passwordless sudo was
+unavailable. Unprivileged pidstat cannot attribute every host process.
+Cgroup measurements nevertheless attribute both runner and DinD SSD activity.
+Some runner cgroups also reached their 3 GiB cap and reclaimed file cache.
+
+Recommended next experiment (not deployed)
+Keep monitoring; a ramdisk for Prometheus/Grafana data is not supported by these
+measurements. Fixing Grafana's RAM cap lets normal page cache retain hot files.
+For CI, start with one workspace in tmpfs (max 4 GiB), retaining five SSD workers
+and one experimental worker. Increase the experimental runner memory budget
+before enabling tmpfs; keep Docker storage on SSD for this first comparison.
+The historical workspace maximum observed over 48h was about 3.09 GiB. This is
+sampled usage, not a guarantee for future jobs. Compare the same commit/job
+under comparable concurrent load before extending or moving DinD to RAM.
