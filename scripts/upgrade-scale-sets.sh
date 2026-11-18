@@ -15,7 +15,7 @@ CHART=oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-se
 CHART_VERSION=0.15.1
 NAMESPACE=arc-runners
 KUBECONFIG_PATH=/etc/rancher/k3s/k3s.yaml
-SCALE_SETS=(sputafuoco-arc sputafuoco-arc-gpu)
+SCALE_SETS=(sputafuoco-arc sputafuoco-arc-gpu sputafuoco-arc-tmpfs)
 
 ref=${1:-main}
 sha=$(git ls-remote "https://github.com/$REPO.git" "$ref" "refs/heads/$ref" "refs/tags/$ref" 2>/dev/null | awk 'NR==1{print $1}')
@@ -43,7 +43,7 @@ for set in "${SCALE_SETS[@]}"; do
   echo "--- helm upgrade $set"
   # --force-conflicts: take back fields changed by hand (e.g. kubectl patch of maxRunners),
   # which Helm's server-side apply would otherwise refuse to overwrite.
-  sudo helm --kubeconfig "$KUBECONFIG_PATH" upgrade "$set" "$CHART" \
+  sudo helm --kubeconfig "$KUBECONFIG_PATH" upgrade --install "$set" "$CHART" \
     --namespace "$NAMESPACE" --version "$CHART_VERSION" -f "$tmp/$set.yaml" --force-conflicts
 done
 

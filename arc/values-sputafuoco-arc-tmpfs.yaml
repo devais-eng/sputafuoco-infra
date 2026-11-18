@@ -1,0 +1,147 @@
+# gha-runner-scale-set 0.15.1 — sputafuoco-arc-tmpfs (label sallo)
+# Expanded dind template (from the chart's own containerMode=dind template), plus:
+#   - workspace on 4 GiB tmpfs; /var/lib/docker on a per-pod SSD volume
+#   - Docker Hub pull-through mirror
+#   - the runner image built by this repository, re-pulled for every job (latest + Always)
+githubConfigUrl: https://github.com/devais-eng
+githubConfigSecret: github-app
+runnerScaleSetName: sputafuoco-arc-tmpfs
+scaleSetLabels: ["sallo"]
+minRunners: 4
+maxRunners: 4
+
+template:
+  spec:
+    nodeSelector:
+      kubernetes.io/hostname: sputafuoco
+    initContainers:
+      # .NET crash reports land on the node, so they outlive the pod (see dotnet-crash below).
+      - name: init-dotnet-crash-dir
+        image: docker:dind
+        command: ["sh", "-c", "chmod 1777 /dotnet-crash"]
+        volumeMounts:
+          - name: dotnet-crash
+            mountPath: /dotnet-crash
+      - name: init-dind-externals
+        image: ghcr.io/devais-eng/arc-runner-sallo:latest
+        imagePullPolicy: Always
+        command: ["cp", "-r", "/home/runner/externals/.", "/home/runner/tmpDir/"]
+        volumeMounts:
+          - name: dind-externals
+            mountPath: /home/runner/tmpDir
+      - name: dind
+        resources:
+          requests: { cpu: "150m", memory: 256Mi }
+          limits: { cpu: "2", memory: 4Gi }
+        image: docker:dind
+        # Privileged DinD sees the host cgroup hierarchy. Keep its daemon and
+        # Docker children beneath this container's CPU/memory budget.
+        command: ["/bin/sh", "-ec"]
+        args:
+          - |
+            cg=$(sed -n 's/^0:://p' /proc/self/cgroup)
+            case "$cg" in
+              /kubepods.slice/*/cri-containerd-*.scope) ;;
+              *) echo "Unsupported DinD cgroup: $cg" >&2; exit 1 ;;
+            esac
+            root="/sys/fs/cgroup$cg"
+            test -f "$root/memory.max"
+            mkdir -p "$root/dockerd"
+            # Read our PID without Kubernetes' double-dollar argument expansion.
+            read -r self_pid rest < /proc/self/stat
+            echo "$self_pid" > "$root/dockerd/cgroup.procs"
+            # Domain controllers require the parent to have no direct processes.
+            echo '+cpu +memory +pids' > "$root/cgroup.subtree_control"
+            exec /usr/local/bin/dockerd-entrypoint.sh "$@" --cgroup-parent="$cg"
+          - --
+          - dockerd
+          - --host=unix:///var/run/docker.sock
+          - --group=$(DOCKER_GROUP_GID)
+          - --registry-mirror=http://registry-mirror.arc-runners.svc.cluster.local:5000
+          - --insecure-registry=registry-mirror.arc-runners.svc.cluster.local:5000
+        env:
+          - name: DOCKER_GROUP_GID
+            value: "123"
+        securityContext:
+          privileged: true
+        restartPolicy: Always
+        startupProbe:
+          exec:
+            command: ["docker", "info"]
+          initialDelaySeconds: 0
+          failureThreshold: 24
+          periodSeconds: 5
+        volumeMounts:
+          - name: work
+            mountPath: /home/runner/_work
+          - name: dind-sock
+            mountPath: /var/run
+          - name: dind-externals
+            mountPath: /home/runner/externals
+          - name: dind-storage
+            mountPath: /var/lib/docker
+    containers:
+      - name: runner
+        image: ghcr.io/devais-eng/arc-runner-sallo:latest
+        imagePullPolicy: Always
+        command: ["/home/runner/run.sh"]
+        env:
+          # Opt-in path consumed by the repository setup action; no global UV_CACHE_DIR.
+          - name: UV_SHARED_CACHE_DIR
+            value: /opt/uv-cache
+          - name: DOCKER_HOST
+            value: unix:///var/run/docker.sock
+          - name: RUNNER_WAIT_FOR_DOCKER_IN_SECONDS
+            value: "120"
+          # Crash diagnostics for Runner.Listener/Runner.Worker (inherited by the worker).
+          - name: DOTNET_DbgEnableMiniDump
+            value: "1"
+          - name: DOTNET_DbgMiniDumpType
+            value: "1"
+          - name: DOTNET_EnableCrashReport
+            value: "1"
+          - name: DOTNET_DbgMiniDumpName
+            value: /dotnet-crash/%e-%p-%t.dmp
+        resources:
+          requests: { cpu: "750m", memory: 6Gi }
+          limits: { cpu: "3", memory: 7Gi }
+        volumeMounts:
+          - name: work
+            mountPath: /home/runner/_work
+          - name: dind-sock
+            mountPath: /var/run
+          - name: dotnet-crash
+            mountPath: /dotnet-crash
+          - name: uv-cache
+            mountPath: /opt/uv-cache
+    volumes:
+      - name: work
+        # Shared with DinD; tmpfs pages count against the writing container.
+        emptyDir:
+          medium: Memory
+          sizeLimit: 4Gi
+      - name: dind-sock
+        emptyDir: {}
+      - name: dind-externals
+        emptyDir: {}
+      - name: dind-storage
+        # A fresh PVC per pod; Delete reclaim policy removes its data after pod deletion.
+        # The storage request is not an enforced quota with local-path-provisioner.
+        ephemeral:
+          volumeClaimTemplate:
+            spec:
+              accessModes: [ReadWriteOnce]
+              storageClassName: runner-ssd
+              resources:
+                requests:
+                  storage: 3Gi
+      - name: dotnet-crash
+        hostPath:
+          path: /srv/data/ci-cache/dotnet-crash
+          type: DirectoryOrCreate
+
+      # Pre-create on the mounted HDD; never silently create it on the root disk.
+      - name: uv-cache
+        hostPath:
+          path: /srv/data/ci-cache/uv
+          type: Directory

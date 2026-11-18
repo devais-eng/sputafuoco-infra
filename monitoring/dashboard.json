@@ -1329,7 +1329,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Runner standard · min 6 / max 6"
+                "value": "Runner SSD · sospeso"
               }
             ]
           },
@@ -1341,7 +1341,19 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Runner GPU · max 1"
+                "value": "Runner GPU · sospeso durante la prova"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc-tmpfs"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner tmpfs · min 4 / max 4"
               }
             ]
           }
@@ -1394,7 +1406,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Runner standard · min 6 / max 6"
+                "value": "Runner SSD · sospeso"
               }
             ]
           },
@@ -1406,7 +1418,19 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Runner GPU · max 1"
+                "value": "Runner GPU · sospeso durante la prova"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc-tmpfs"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner tmpfs · min 4 / max 4"
               }
             ]
           }
@@ -1459,7 +1483,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Runner standard · min 6 / max 6"
+                "value": "Runner SSD · sospeso"
               }
             ]
           },
@@ -1471,7 +1495,19 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Runner GPU · max 1"
+                "value": "Runner GPU · sospeso durante la prova"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc-tmpfs"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner tmpfs · min 4 / max 4"
               }
             ]
           }
@@ -1524,7 +1560,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Runner standard · min 6 / max 6"
+                "value": "Runner SSD · sospeso"
               }
             ]
           },
@@ -1536,7 +1572,19 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Runner GPU · max 1"
+                "value": "Runner GPU · sospeso durante la prova"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sputafuoco-arc-tmpfs"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Runner tmpfs · min 4 / max 4"
               }
             ]
           }

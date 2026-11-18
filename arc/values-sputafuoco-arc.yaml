@@ -7,8 +7,8 @@ githubConfigUrl: https://github.com/devais-eng
 githubConfigSecret: github-app
 runnerScaleSetName: sputafuoco-arc
 scaleSetLabels: ["sallo"]
-minRunners: 6
-maxRunners: 6
+minRunners: 0
+maxRunners: 0
 
 template:
   spec:
@@ -103,8 +103,8 @@ template:
           - name: DOTNET_DbgMiniDumpName
             value: /dotnet-crash/%e-%p-%t.dmp
         resources:
-          requests: { cpu: "750m", memory: 2Gi }
-          limits: { cpu: "3", memory: 3Gi }
+          requests: { cpu: "750m", memory: 6Gi }
+          limits: { cpu: "3", memory: 7Gi }
         volumeMounts:
           - name: work
             mountPath: /home/runner/_work

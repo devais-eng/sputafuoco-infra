@@ -9,7 +9,7 @@ githubConfigSecret: github-app
 runnerScaleSetName: sputafuoco-arc-gpu
 scaleSetLabels: ["sallo-gpu"]
 minRunners: 0
-maxRunners: 1
+maxRunners: 0
 
 template:
   spec:

@@ -1,13 +1,13 @@
 # Standard runner resource budgets
 
-The standard scale set keeps `maxRunners: 6` and `minRunners: 6`. ARC targets six idle runners plus assigned jobs, capped at six total. Runners remain ephemeral and are replaced after each job.
+The current trial runs four tmpfs workers (min/max 4), all accepting `sallo`. SSD and GPU pools have min/max zero and drain active jobs naturally.
 
-| Container | CPU request | CPU limit | Memory request | Memory limit |
+| Container (both pools) | CPU request | CPU limit | Memory request | Memory limit |
 |---|---:|---:|---:|---:|
-| runner | 750m | 3 | 2 GiB | 3 GiB |
+| runner | 750m | 3 | 6 GiB | 7 GiB |
 | dind | 150m | 2 | 256 MiB | 4 GiB |
 
-Requests total 900m CPU and 2.25 GiB per job. Budgets are separate: spare runner capacity is not lent to DinD. CPU excess is throttled; memory excess can cause OOM failures. Summed limits across six jobs exceed host memory; these limits bound individual jobs, not simultaneous peak demand. The GPU scale set is unchanged.
+Requests total 900m CPU and 6.25 GiB per job. Budgets are separate: spare runner capacity is not lent to DinD. CPU excess is throttled; memory excess can cause OOM failures. Tmpfs pages count against the container writing them, and the 4 GiB workspace ceiling is not a reservation. Four jobs have a combined 44 GiB ceiling on a roughly 30 GiB host, so simultaneous peaks can cause node OOMs. Scheduling requests total 25 GiB; GPU runners are suspended. See [experiment protocol and rollback](ssd-tmpfs-experiment.md). Historical checks below describe previous configurations.
 
 ## Why the DinD startup wrapper is required
 
