@@ -4,3 +4,14 @@
 *kubeconfig*
 k3s.yaml
 .env
+
+# Machine-local configuration and diagnostic exports
+*.private.yaml
+*.private.yml
+.env.*
+!.env.example
+*.p12
+*.pfx
+*values-before*.yaml
+*pods-before*.json
+*pods-after*.json

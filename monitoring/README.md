@@ -2,7 +2,7 @@
 
 Dedicated kube-prometheus-stack 92.21.2 in namespace `monitoring`, with Prometheus, Grafana, Alertmanager, node-exporter and kube-state-metrics. ARC controller 0.15.1 exposes native Prometheus metrics; an OpenTelemetry collector is not required.
 
-Grafana: http://grafana.example.invalid:3000/d/sputafuoco-ci
+Grafana: http://<PRIVATE_GRAFANA_HOSTNAME>:3000/d/sputafuoco-ci
 Login: `admin`. Initial password on sputafuoco: `cat ~/ci-monitoring/grafana-admin-password`. Credentials are excluded from Git. Change the password through Grafana after login; the bootstrap file then no longer reflects the changed password.
 
 Access uses Tailscale Serve HTTP over the encrypted tailnet. Nothing listens publicly on port 3000; a Kubernetes host-network proxy listens on 127.0.0.1:13000 only. Tailnet ACLs and Grafana login control access. Enable on the host:
@@ -42,3 +42,17 @@ References: [ARC metrics](https://docs.github.com/en/actions/how-tos/manage-runn
 Run `KUBECONFIG=~/.kube/config python3 ~/ci-monitoring/verify.py` on the node after at least two scrape cycles. It validates required scrape targets, all dashboard queries and the provisioned Grafana dashboard. Interactive use prompts for the current admin password; noninteractive bootstrap verification uses the initial password file. `GRAFANA_PASSWORD` can supply a current password via the environment.
 
 Disk legends distinguish the Kingston SSD (sda), WD HDD #1 (sdb) and WD HDD #2 (sdc), and identify the system RAID, data RAID and runner SSD filesystem. Node-level dashboard queries remove exporter pod identity so an exporter restart does not split history into duplicate legend entries. Live runner file churn and scan timeouts can skip collection cycles; consult the freshness and success panels before interpreting cached per-runner usage.
+
+## Private installation values
+
+Before running `install.sh`, create `monitoring/values.private.yaml` locally (ignored by Git):
+
+```yaml
+grafana:
+  grafana.ini:
+    server:
+      domain: <PRIVATE_GRAFANA_HOSTNAME>
+      root_url: http://<PRIVATE_GRAFANA_HOSTNAME>:3000/
+```
+
+Use the node's Tailscale DNS name. Keep this overlay for every monitoring Helm upgrade; never commit the actual tailnet name, credentials, kubeconfig, or raw Helm values/backups. The installer requires this file before making changes.

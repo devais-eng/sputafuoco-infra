@@ -2,6 +2,7 @@
 # Run on sputafuoco as devais. Does not alter runner scale-set values.
 set -euo pipefail
 cd "$(dirname "$0")"
+[[ -f values.private.yaml ]] || { echo "Create ignored values.private.yaml with the private Grafana hostname first" >&2; exit 1; }
 export KUBECONFIG=${KUBECONFIG:-$HOME/.kube/config}
 [[ $(hostname) == sputafuoco ]] || { echo 'Expected sputafuoco'; exit 1; }
 for tool in helm kubectl python3; do command -v "$tool" >/dev/null; done
@@ -17,7 +18,7 @@ if ! kubectl -n monitoring get secret grafana-admin >/dev/null 2>&1; then
   fi
   kubectl -n monitoring create secret generic grafana-admin --from-literal=admin-user=admin --from-file=admin-password=grafana-admin-password
 fi
-helm upgrade --install ci-monitoring ./kube-prometheus-stack-92.21.2.tgz -n monitoring -f values.yaml --wait --timeout=25m
+helm upgrade --install ci-monitoring ./kube-prometheus-stack-92.21.2.tgz -n monitoring -f values.yaml -f values.private.yaml --wait --timeout=25m
 helm get values arc -n arc-systems > "arc-values-before-$(date +%s).yaml"
 helm upgrade arc ./gha-runner-scale-set-controller-0.15.1.tgz -n arc-systems --reuse-values -f arc-metrics-values.yaml --wait --timeout=3m
 kubectl -n monitoring create configmap ci-volume-usage-code --from-file=volume-usage/collector.py --dry-run=client -o yaml | kubectl apply -f -
