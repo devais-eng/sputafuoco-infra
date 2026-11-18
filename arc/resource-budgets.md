@@ -1,13 +1,13 @@
 # Standard runner resource budgets
 
-The SSD/tmpfs experiment uses two separate scale sets, each with minRunners=maxRunners=1. The SSD pool retains label `sallo`; the tmpfs pool also uses `sallo`. Runners remain ephemeral and are replaced after each job. Active jobs drain with their previous limits during migration.
+The current trial runs four tmpfs workers (min/max 4), all accepting `sallo`. SSD and GPU pools have min/max zero and drain active jobs naturally.
 
 | Container (both pools) | CPU request | CPU limit | Memory request | Memory limit |
 |---|---:|---:|---:|---:|
 | runner | 750m | 3 | 6 GiB | 7 GiB |
 | dind | 150m | 2 | 256 MiB | 4 GiB |
 
-Requests total 900m CPU and 6.25 GiB per job. Budgets are separate: spare runner capacity is not lent to DinD. CPU excess is throttled; memory excess can cause OOM failures. Tmpfs pages count against the container writing them, and the 4 GiB workspace ceiling is not a reservation. Two jobs have a combined 22 GiB ceiling, excluding GPU and system services. The GPU scale set is unchanged. See [experiment protocol and rollback](ssd-tmpfs-experiment.md). Historical checks below describe previous configurations.
+Requests total 900m CPU and 6.25 GiB per job. Budgets are separate: spare runner capacity is not lent to DinD. CPU excess is throttled; memory excess can cause OOM failures. Tmpfs pages count against the container writing them, and the 4 GiB workspace ceiling is not a reservation. Four jobs have a combined 44 GiB ceiling on a roughly 30 GiB host, so simultaneous peaks can cause node OOMs. Scheduling requests total 25 GiB; GPU runners are suspended. See [experiment protocol and rollback](ssd-tmpfs-experiment.md). Historical checks below describe previous configurations.
 
 ## Why the DinD startup wrapper is required
 

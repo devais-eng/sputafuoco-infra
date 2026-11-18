@@ -9,9 +9,9 @@ Self-hosted GitHub Actions runners for the `devais-eng` organization: a single-n
 | k3s (single server) | `v1.37.2+k3s1` | — | [Install](#install-from-scratch) |
 | Helm | `v4.3.2` | — | — |
 | ARC controller (`gha-runner-scale-set-controller`) | `0.15.1` | `arc-systems` | — |
-| Scale set `sputafuoco-arc` (label `sallo`, min 1 / max 1 runner) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc.yaml` |
-| Scale set `sputafuoco-arc-tmpfs` (label `sallo`, min 1 / max 1 runner) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc-tmpfs.yaml` |
-| Scale set `sputafuoco-arc-gpu` (label `sallo-gpu`, max 1 runner) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc-gpu.yaml` |
+| Scale set `sputafuoco-arc` (label `sallo`, min 0 / max 0 runners) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc.yaml` |
+| Scale set `sputafuoco-arc-tmpfs` (label `sallo`, min 4 / max 4 runners) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc-tmpfs.yaml` |
+| Scale set `sputafuoco-arc-gpu` (label `sallo-gpu`, suspended: max 0 runners) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc-gpu.yaml` |
 | Dedicated SSD local-path provisioner (`runner-ssd`) | `0.0.37` | `arc-runners` | `arc/runner-ssd-provisioner.yaml` |
 | Docker Hub pull-through cache (`registry:3`) | — | `arc-runners` | `registry-mirror/registry-mirror.yaml` |
 | NVIDIA device plugin | `0.20.1` | `nvidia-device-plugin` | `nvidia/values-device-plugin.yaml` |
@@ -26,8 +26,8 @@ runs-on: sallo-gpu    # jobs that use the GPU directly in the runner container
 
 ## Design notes
 
-- **SSD space and I/O bound concurrency.** The comparison uses **1 SSD worker + 1 tmpfs-workspace worker**, plus the unchanged optional GPU runner. Docker data in both CPU pools uses the roughly 60 GiB SSD partition. Existing job samples used about 5 GiB per regular runner, but peak usage and GPU jobs still need measurement. Before raising concurrency, measure free bytes/inodes and I/O pressure during a full CI run. System images, other pod volumes and the registry cache still use their existing storage.
-- **CPU runner resource budgets.** The SSD/tmpfs comparison runs one worker per pool. Both runner containers request 750m CPU / 6 GiB RAM and are capped at 3 CPUs / 7 GiB; DinD requests 150m / 256 MiB and is capped at 2 CPUs / 4 GiB, including nested containers. The tmpfs workspace is capped at 4 GiB and consumes container memory. GPU sizing is unchanged. See [experiment and rollback](arc/ssd-tmpfs-experiment.md).
+- **SSD space and I/O bound concurrency.** The trial uses **4 tmpfs-workspace workers**; SSD and GPU pools are suspended. Docker data in the CPU pool uses the roughly 60 GiB SSD partition. Existing job samples used about 5 GiB per regular runner, but peak usage and GPU jobs still need measurement. Before raising concurrency, measure free bytes/inodes and I/O pressure during a full CI run. System images, other pod volumes and the registry cache still use their existing storage.
+- **CPU runner resource budgets.** The trial runs four tmpfs workers. Both runner containers request 750m CPU / 6 GiB RAM and are capped at 3 CPUs / 7 GiB; DinD requests 150m / 256 MiB and is capped at 2 CPUs / 4 GiB, including nested containers. The tmpfs workspace is capped at 4 GiB and consumes container memory. The GPU pool is suspended during this trial. See [experiment and rollback](arc/ssd-tmpfs-experiment.md).
 - **Ephemeral runners.** Every job gets a fresh pod and a fresh Docker daemon. Nothing leaks between jobs, but nothing is cached either: the runner image and the pull-through cache exist to win that time back.
 - **Where data lives:**
 

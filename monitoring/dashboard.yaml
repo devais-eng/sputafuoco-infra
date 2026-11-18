@@ -243,44 +243,44 @@ data:
     "uid": "prometheus"}, "targets": [{"refId": "A", "expr": "gha_running_jobs", "legendFormat":
     "{{actions_github_com_scale_set_name}}"}], "fieldConfig": {"defaults": {"unit":
     "short"}, "overrides": [{"matcher": {"id": "byName", "options": "sputafuoco-arc"},
-    "properties": [{"id": "displayName", "value": "Runner SSD · min 1 / max 1"}]},
-    {"matcher": {"id": "byName", "options": "sputafuoco-arc-gpu"}, "properties": [{"id":
-    "displayName", "value": "Runner GPU · max 1"}]}, {"matcher": {"id": "byName",
+    "properties": [{"id": "displayName", "value": "Runner SSD · sospeso"}]}, {"matcher":
+    {"id": "byName", "options": "sputafuoco-arc-gpu"}, "properties": [{"id": "displayName",
+    "value": "Runner GPU · sospeso durante la prova"}]}, {"matcher": {"id": "byName",
     "options": "sputafuoco-arc-tmpfs"}, "properties": [{"id": "displayName", "value":
-    "Runner tmpfs · min 1 / max 1"}]}]}, "options": {"legend": {"displayMode": "table",
+    "Runner tmpfs · min 4 / max 4"}]}]}, "options": {"legend": {"displayMode": "table",
     "placement": "bottom", "calcs": ["lastNotNull"]}, "tooltip": {"mode": "multi"}}},
     {"id": 24, "title": "ARC: runner desiderati", "type": "timeseries", "gridPos":
     {"x": 12, "y": 88, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid":
     "prometheus"}, "targets": [{"refId": "A", "expr": "gha_desired_runners", "legendFormat":
     "{{actions_github_com_scale_set_name}}"}], "fieldConfig": {"defaults": {"unit":
     "short"}, "overrides": [{"matcher": {"id": "byName", "options": "sputafuoco-arc"},
-    "properties": [{"id": "displayName", "value": "Runner SSD · min 1 / max 1"}]},
-    {"matcher": {"id": "byName", "options": "sputafuoco-arc-gpu"}, "properties": [{"id":
-    "displayName", "value": "Runner GPU · max 1"}]}, {"matcher": {"id": "byName",
+    "properties": [{"id": "displayName", "value": "Runner SSD · sospeso"}]}, {"matcher":
+    {"id": "byName", "options": "sputafuoco-arc-gpu"}, "properties": [{"id": "displayName",
+    "value": "Runner GPU · sospeso durante la prova"}]}, {"matcher": {"id": "byName",
     "options": "sputafuoco-arc-tmpfs"}, "properties": [{"id": "displayName", "value":
-    "Runner tmpfs · min 1 / max 1"}]}]}, "options": {"legend": {"displayMode": "table",
+    "Runner tmpfs · min 4 / max 4"}]}]}, "options": {"legend": {"displayMode": "table",
     "placement": "bottom", "calcs": ["lastNotNull"]}, "tooltip": {"mode": "multi"}}},
     {"id": 25, "title": "ARC: runner disponibili", "type": "timeseries", "gridPos":
     {"x": 0, "y": 96, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid":
     "prometheus"}, "targets": [{"refId": "A", "expr": "gha_idle_runners", "legendFormat":
     "{{actions_github_com_scale_set_name}}"}], "fieldConfig": {"defaults": {"unit":
     "short"}, "overrides": [{"matcher": {"id": "byName", "options": "sputafuoco-arc"},
-    "properties": [{"id": "displayName", "value": "Runner SSD · min 1 / max 1"}]},
-    {"matcher": {"id": "byName", "options": "sputafuoco-arc-gpu"}, "properties": [{"id":
-    "displayName", "value": "Runner GPU · max 1"}]}, {"matcher": {"id": "byName",
+    "properties": [{"id": "displayName", "value": "Runner SSD · sospeso"}]}, {"matcher":
+    {"id": "byName", "options": "sputafuoco-arc-gpu"}, "properties": [{"id": "displayName",
+    "value": "Runner GPU · sospeso durante la prova"}]}, {"matcher": {"id": "byName",
     "options": "sputafuoco-arc-tmpfs"}, "properties": [{"id": "displayName", "value":
-    "Runner tmpfs · min 1 / max 1"}]}]}, "options": {"legend": {"displayMode": "table",
+    "Runner tmpfs · min 4 / max 4"}]}]}, "options": {"legend": {"displayMode": "table",
     "placement": "bottom", "calcs": ["lastNotNull"]}, "tooltip": {"mode": "multi"}}},
     {"id": 26, "title": "ARC: avvio job p95", "type": "timeseries", "gridPos": {"x":
     12, "y": 96, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
     "targets": [{"refId": "A", "expr": "histogram_quantile(0.95, sum by(le,actions_github_com_scale_set_name)(rate(gha_job_startup_duration_seconds_bucket[$__rate_interval])))",
     "legendFormat": "{{actions_github_com_scale_set_name}}"}], "fieldConfig": {"defaults":
     {"unit": "s"}, "overrides": [{"matcher": {"id": "byName", "options": "sputafuoco-arc"},
-    "properties": [{"id": "displayName", "value": "Runner SSD · min 1 / max 1"}]},
-    {"matcher": {"id": "byName", "options": "sputafuoco-arc-gpu"}, "properties": [{"id":
-    "displayName", "value": "Runner GPU · max 1"}]}, {"matcher": {"id": "byName",
+    "properties": [{"id": "displayName", "value": "Runner SSD · sospeso"}]}, {"matcher":
+    {"id": "byName", "options": "sputafuoco-arc-gpu"}, "properties": [{"id": "displayName",
+    "value": "Runner GPU · sospeso durante la prova"}]}, {"matcher": {"id": "byName",
     "options": "sputafuoco-arc-tmpfs"}, "properties": [{"id": "displayName", "value":
-    "Runner tmpfs · min 1 / max 1"}]}]}, "options": {"legend": {"displayMode": "table",
+    "Runner tmpfs · min 4 / max 4"}]}]}, "options": {"legend": {"displayMode": "table",
     "placement": "bottom", "calcs": ["lastNotNull"]}, "tooltip": {"mode": "multi"}},
     "description": "Tempo entro cui viene avviato il 95% dei job osservati nella finestra.
     Se non ci sono nuovi avvii nella finestra, il percentile può non essere disponibile."},

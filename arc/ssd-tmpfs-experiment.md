@@ -1,4 +1,10 @@
-# SSD versus tmpfs workspace experiment
+# Four tmpfs workers trial
+
+Current configuration (2026-11-18): `sputafuoco-arc-tmpfs` min/max 4 with label `sallo`; SSD and GPU scale sets min/max zero. Drain busy runners naturally, never force-delete them. Each tmpfs worker retains a 4 GiB workspace, runner request/limit 6/7 GiB with CPU 750m/3, and DinD request/limit 256 MiB/4 GiB with CPU 150m/2. Docker storage stays on SSD. Four workers reserve 25 GiB of scheduling memory but can reach 44 GiB in combined memory limits; this is a monitored trial, not a guarantee that simultaneous peaks fit. Observe node available memory, memory pressure, OOMs, workspace occupancy and job durations. Reduce tmpfs min/max to 3 if pressure becomes problematic; keep GPU disabled during this trial.
+
+During migration, the existing SSD job may continue while a tmpfs pod waits for scheduling memory. The upgrade script first disables SSD/GPU pools, then applies the tmpfs target. No busy pod is manually deleted.
+
+## Historical two-worker comparison
 
 Approved 2026-11-18: reduce the standard pool from six workers to one without interrupting active jobs, then add one tmpfs worker. Use identical CPU and memory budgets for both pools.
 
