@@ -1,6 +1,28 @@
 #!/usr/bin/env bash
 # Prepares persistent caches alongside, never inside, ephemeral runner PVCs.
 set -euo pipefail
+
+measure_uv_cache() {
+  local errors output rc bytes
+  errors=$(mktemp)
+  if output=$(LC_ALL=C du -sx -B1 --exclude='.tmp*' "$1" 2>"$errors"); then
+    :
+  else
+    rc=$?
+    # Tolerate only a disappearing uv temporary path, never permission/I/O errors.
+    if [[ $rc == 1 && -s "$errors" ]] && ! grep -qvE "^du: cannot access '.*/\.tmp[^']*': No such file or directory$" "$errors"; then
+      echo 'Temporary uv entries vanished during measurement; continuing with disposable entries excluded.' >&2
+    else
+      cat "$errors" >&2
+      rm -f "$errors"
+      return "$rc"
+    fi
+  fi
+  rm -f "$errors"
+  bytes=${output%%$'\t'*}
+  [[ "$bytes" =~ ^[0-9]+$ ]] || { echo 'Invalid du output; refusing migration' >&2; return 1; }
+  printf '%s\n' "$bytes"
+}
 mode=${1:---check}
 [[ "$mode" == --check || "$mode" == --apply ]] || { echo 'Usage: prepare-ci-ssd-caches.sh [--check|--apply]' >&2; exit 2; }
 [[ $(hostname) == sputafuoco && $EUID == 0 ]] || { echo 'Run with sudo on sputafuoco' >&2; exit 1; }
@@ -15,7 +37,10 @@ for path in "$root" "$root/ci-cache" "$root/ci-cache/uv" "$root/ci-cache/registr
  [[ ! -e "$path" || -d "$path" ]] || { echo "Not a directory: $path" >&2; exit 1; }
 done
 bytes=0
-if [[ -d "$source_uv" ]]; then bytes=$(du -sx -B1 "$source_uv" | cut -f1); fi
+if [[ -d "$source_uv" ]]; then
+  echo "Measuring reusable uv cache on HDD; this can take several minutes..."
+  bytes=$(measure_uv_cache "$source_uv")
+fi
 free=$(df -B1 --output=avail "$root" | tail -1 | tr -d ' ')
 reserve=$((20 * 1024 * 1024 * 1024))
 (( free > bytes + reserve )) || { echo 'Not enough SSD space to copy UV while retaining 20 GiB free' >&2; exit 1; }
@@ -28,7 +53,8 @@ install -d -o root -g root -m 0755 "$root/ci-cache/registry"
 # in a destination already used by a new runner. Vanished source entries are OK.
 rc=0
 if [[ -d "$source_uv" ]]; then
-  rsync -a --numeric-ids --ignore-existing "$source_uv/" "$root/ci-cache/uv/" || rc=$?
+  echo "Copying reusable uv cache to SSD (temporary build directories excluded)..."
+  rsync -a --numeric-ids --ignore-existing --exclude='.tmp*' --info=progress2,name0 --human-readable "$source_uv/" "$root/ci-cache/uv/" || rc=$?
 else
   echo 'No previous uv cache; starting empty'
 fi
