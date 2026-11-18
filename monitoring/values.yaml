@@ -104,9 +104,7 @@ grafana:
       enabled: false
     dashboards:
       default_home_dashboard_path: /tmp/dashboards/sputafuoco-ci.json
-    server:
-      domain: grafana.example.invalid
-      root_url: http://grafana.example.invalid:3000/
+    # Host-specific server.domain and server.root_url belong in values.private.yaml.
   sidecar:
     dashboards:
       enabled: true
