@@ -15,7 +15,7 @@ CHART=oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-se
 CHART_VERSION=0.15.1
 NAMESPACE=arc-runners
 KUBECONFIG_PATH=/etc/rancher/k3s/k3s.yaml
-SCALE_SETS=(sputafuoco-arc sputafuoco-arc-gpu)
+SCALE_SETS=(sputafuoco-arc sputafuoco-arc-tmpfs sputafuoco-arc-gpu)
 
 ref=${1:-main}
 sha=$(git ls-remote "https://github.com/$REPO.git" "$ref" "refs/heads/$ref" "refs/tags/$ref" 2>/dev/null | awk 'NR==1{print $1}')
@@ -40,10 +40,23 @@ done
 sudo -v   # ask for the password once, up front
 
 for set in "${SCALE_SETS[@]}"; do
+  # First installation of the experiment must not add load before old jobs drain.
+  if [[ "$set" == sputafuoco-arc-tmpfs ]] && ! sudo helm --kubeconfig "$KUBECONFIG_PATH" status "$set" -n "$NAMESPACE" >/dev/null 2>&1; then
+    deadline=$((SECONDS + 3600))
+    while true; do
+      state=$(sudo kubectl --kubeconfig "$KUBECONFIG_PATH" -n "$NAMESPACE" get pods \
+        -l actions.github.com/scale-set-name=sputafuoco-arc \
+        -o 'jsonpath={range .items[*]}{.spec.containers[?(@.name=="runner")].resources.limits.memory}{"\n"}{end}')
+      [[ "$state" == 7Gi ]] && break
+      (( SECONDS < deadline )) || { echo "Drain timed out; tmpfs was not installed. Retry after old jobs finish." >&2; exit 1; }
+      echo "Waiting for old SSD jobs to finish and the single 7Gi runner to appear..."
+      sleep 15
+    done
+  fi
   echo "--- helm upgrade $set"
   # --force-conflicts: take back fields changed by hand (e.g. kubectl patch of maxRunners),
   # which Helm's server-side apply would otherwise refuse to overwrite.
-  sudo helm --kubeconfig "$KUBECONFIG_PATH" upgrade "$set" "$CHART" \
+  sudo helm --kubeconfig "$KUBECONFIG_PATH" upgrade --install "$set" "$CHART" \
     --namespace "$NAMESPACE" --version "$CHART_VERSION" -f "$tmp/$set.yaml" --force-conflicts
 done
 
