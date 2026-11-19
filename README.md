@@ -28,17 +28,18 @@ runs-on: sallo-gpu    # jobs that use the GPU directly in the runner container
 
 Grafana has a 1536 MiB memory limit to avoid repeated SSD reads caused by cache eviction at the former 512 MiB cap. See the [measured CI I/O analysis](monitoring/io-analysis-2026-11-18.txt) for the before/after evidence and the proposed workspace experiment.
 
-- **SSD space and I/O bound concurrency.** The trial uses **4 tmpfs-workspace workers**; SSD and GPU pools are suspended. Docker data in the CPU pool uses the roughly 60 GiB SSD partition. Existing job samples used about 5 GiB per regular runner, but peak usage and GPU jobs still need measurement. Before raising concurrency, measure free bytes/inodes and I/O pressure during a full CI run. System images, other pod volumes and the registry cache still use their existing storage.
-- **CPU runner resource budgets.** The trial runs four tmpfs workers. Both runner containers request 750m CPU / 6 GiB RAM and are capped at 3 CPUs / 7 GiB; DinD requests 150m / 256 MiB and is capped at 2 CPUs / 4 GiB, including nested containers. The tmpfs workspace is capped at 4 GiB and consumes container memory. The GPU pool is suspended during this trial. See [experiment and rollback](arc/ssd-tmpfs-experiment.md).
+- **SSD space and I/O bound concurrency.** The trial uses **4 tmpfs-workspace workers**; SSD and GPU pools are suspended. Docker data in the CPU pool uses the roughly 60 GiB SSD partition. Existing job samples used about 5 GiB per regular runner, but peak usage and GPU jobs still need measurement. Before raising concurrency, measure free bytes/inodes and I/O pressure during a full CI run. System images and other pod volumes retain their existing storage; the shared uv and registry caches move to SSD.
+- **CPU runner resource budgets.** The trial runs four tmpfs workers. Each runner container requests 750m CPU / 6 GiB RAM and are capped at 3 CPUs / 7 GiB; DinD requests 150m / 256 MiB and is capped at 2 CPUs / 5 GiB, including nested containers. The tmpfs workspace is capped at 4 GiB and consumes container memory. The GPU pool is suspended during this trial. See [experiment and rollback](arc/ssd-tmpfs-experiment.md).
 - **Ephemeral runners.** Every job gets a fresh pod and a fresh Docker daemon. Nothing leaks between jobs, but nothing is cached either: the runner image and the pull-through cache exist to win that time back.
 - **Where data lives:**
 
 | Data | Path |
 |---|---|
 | k3s state (SQLite) and system images (containerd) | `/var/lib/rancher/k3s` (root filesystem) |
-| Per-pod job workspace and dind `/var/lib/docker` | `/srv/runner-ssd` (`/dev/sda3`, ext4, mounted by UUID) |
+| Active CPU workspace | 4 GiB tmpfs per pod |
+| DinD `/var/lib/docker` and suspended SSD/GPU workspaces | `/srv/runner-ssd` (`/dev/sda3`, ext4, mounted by UUID) |
 | Remaining pod `emptyDir` volumes: dind socket and externals | `/srv/data/kubelet` |
-| Pull-through cache | `/srv/data/ci-cache/registry` |
+| Pull-through cache | `/srv/runner-ssd/ci-cache/registry` |
 | .NET crash reports | `/srv/data/ci-cache/dotnet-crash` |
 
 The workspace and Docker volumes are **generic ephemeral volumes**: each pod owns fresh PVCs, and deletion of the pod triggers PVC garbage collection and the provisioner's `Delete` reclaim policy. Cleanup is asynchronous and waits for the pod to terminate; monitor stuck pods/PVs rather than deleting their data manually. The requests of 4 GiB for workspace and 3 GiB for Docker are **not enforced quotas** with local-path-provisioner. The SSD is not RAID-backed; it holds disposable job data.
@@ -101,9 +102,7 @@ shred -u /path/to/key.pem
 
 ### 5. Docker Hub pull-through cache
 
-```bash
-sudo k3s kubectl apply -f registry-mirror/registry-mirror.yaml
-```
+Prepare the SSD directories and use the [readiness-gated cache migration procedure](#ssd-cache-migration) below. Do not apply the Service selector change before the SSD registry Deployment is ready.
 
 The runners' dind daemons use it through `--registry-mirror=http://registry-mirror.arc-runners.svc.cluster.local:5000`. It saves downloads and Docker Hub rate limit, not disk writes: each pod still extracts the layers into its own ephemeral SSD volume. A proxy-mode registry is read-only, so it cannot host images of our own.
 
@@ -261,10 +260,18 @@ df -i /srv/runner-ssd                                       # free inodes
 
 If jobs stay queued while the listener logs `totalAssignedJobs=0`, GitHub is not matching the scale set to the job's `runs-on`. The usual cause is a missing label: see above.
 
-## Shared uv cache on HDD
+## Shared uv cache on SSD
 
-Run `sudo env EXPECTED_DATA_UUID=<verified-data-filesystem-uuid> bash scripts/prepare-uv-cache.sh` on sputafuoco before applying the ARC values. The script verifies the data filesystem UUID and creates `/srv/data/ci-cache/uv` for runner UID/GID 1001 with mode 0750. Both scale sets mount it at `/opt/uv-cache` and advertise `UV_SHARED_CACHE_DIR`; workspaces and virtual environments remain on ephemeral SSD volumes. The runner is pinned to sputafuoco.
+Run `sudo bash scripts/prepare-ci-ssd-caches.sh --apply` on sputafuoco before applying the ARC values. The script verifies the SSD mount and marker, retains free-space headroom, and creates `/srv/runner-ssd/ci-cache/uv` for runner UID/GID 1001 with mode 0750. Both scale sets mount it at `/opt/uv-cache` and advertise `UV_SHARED_CACHE_DIR`; workspaces and virtual environments remain on ephemeral SSD volumes. The runner is pinned to sputafuoco.
 
 The repository setup action must explicitly opt into this path, disable GitHub cache restore/save and per-job pruning, and use `UV_LINK_MODE=copy` only for shared-cache jobs. Do not set `UV_CACHE_DIR` globally: release/tag and other sensitive jobs must retain their isolated temporary cache. Existing workflows keep their current behavior until the action supports this contract. The mount itself is writable by jobs: this is not a security boundary for untrusted code; use a separate scale set without this mount when isolation is required.
 
-The cache survives pod deletion and has no enforced size quota. Monitor `du -sh /srv/data/ci-cache/uv` and free space on `/srv/data`. Maintenance should use the same uv version's cache commands during an idle window; do not delete cache internals manually or run per-job pruning. To roll back, restore the preceding Helm revisions; leave the HDD directory in place until no pod uses it.
+The cache survives pod deletion and has no enforced size quota. Monitor `du -sh /srv/runner-ssd/ci-cache/uv` and free space on `/srv/runner-ssd`. Maintenance should use the same uv version's cache commands during an idle window; do not delete cache internals manually or run per-job pruning. To roll back, restore the preceding Helm revisions; leave the HDD directory in place until no pod uses it.
+
+### SSD cache migration
+
+Run `sudo bash scripts/prepare-ci-ssd-caches.sh --check` then `--apply` on sputafuoco. This preserves the HDD originals, copies the shared uv cache to the mounted SSD, and creates a fresh registry cache. Keep at least 20 GiB free for ephemeral Docker volumes. The previous `prepare-uv-cache.sh` is only for the original HDD setup.
+
+Apply the Deployment document from `registry-mirror/registry-mirror.yaml` first, wait for `deployment/registry-mirror-ssd` to be ready, then apply its Service document. This changes the existing service endpoint without terminating the old registry, which remains available for in-flight connections and rollback. The new cache starts cold and warms from Docker Hub; it does not copy an actively written registry datastore. After observing the new endpoint, scale the old `registry-mirror` Deployment to zero.
+
+Upgrade runner templates to the SSD uv path; existing jobs retain their HDD mounts until completion. Apply the 5 GiB DinD limit as a separate measurement step. Shared uv and registry caches are persistent and compete with ephemeral Docker volumes for SSD space. Check their size and free space periodically; prune uv with `uv cache prune` as UID 1001 during a quiet maintenance window. Do not blindly delete registry blob files or prune during an active migration. For rollback, restore the old service selector and HDD uv path; no HDD source is deleted by preparation.
