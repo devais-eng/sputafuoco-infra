@@ -5,9 +5,9 @@ The current trial runs four tmpfs workers (min/max 4), all accepting `sallo`. SS
 | Container (both pools) | CPU request | CPU limit | Memory request | Memory limit |
 |---|---:|---:|---:|---:|
 | runner | 750m | 3 | 6 GiB | 7 GiB |
-| dind | 150m | 2 | 256 MiB | 4 GiB |
+| dind | 150m | 2 | 256 MiB | 5 GiB |
 
-Requests total 900m CPU and 6.25 GiB per job. Budgets are separate: spare runner capacity is not lent to DinD. CPU excess is throttled; memory excess can cause OOM failures. Tmpfs pages count against the container writing them, and the 4 GiB workspace ceiling is not a reservation. Four jobs have a combined 44 GiB ceiling on a roughly 30 GiB host, so simultaneous peaks can cause node OOMs. Scheduling requests total 25 GiB; GPU runners are suspended. See [experiment protocol and rollback](ssd-tmpfs-experiment.md). Historical checks below describe previous configurations.
+Requests total 900m CPU and 6.25 GiB per job. Budgets are separate: spare runner capacity is not lent to DinD. CPU excess is throttled; memory excess can cause OOM failures. Tmpfs pages count against the container writing them, and the 4 GiB workspace ceiling is not a reservation. Four jobs have a combined 48 GiB ceiling on a roughly 30 GiB host, so simultaneous peaks can cause node OOMs. Scheduling requests total 25 GiB; GPU runners are suspended. See [experiment protocol and rollback](ssd-tmpfs-experiment.md). Historical checks below describe previous configurations.
 
 ## Why the DinD startup wrapper is required
 
@@ -51,3 +51,7 @@ After the 4 GiB increase, no further kernel OOMs were observed through 21:33 UTC
 ## CPU limits redistributed between runner and DinD
 
 Standard runner CPU limits are now 3 cores for the runner and 2 cores for DinD, including its nested Docker workloads. Requests remain 750m and 150m respectively. This preserves the combined ceiling of 5 cores per job while allowing Docker services more CPU headroom; it does not allocate exclusive cores. Memory limits remain 3 GiB/4 GiB and the standard pool stays at min/max 6. Historical delegation checks above record the original 4/1 CPU limits.
+
+## SSD cache and DinD follow-up
+
+The target DinD limit is 5 GiB for CPU pools; runner limits remain 7 GiB and workspace tmpfs remains 4 GiB. This increases the possible combined four-worker memory ceiling to 48 GiB, without changing scheduling requests. It is a measured trial, not a guarantee that simultaneous peaks fit. GPU remains suspended with its existing limits. Shared uv cache moves to `/srv/runner-ssd/ci-cache/uv`; the registry mirror moves to a separate SSD directory. Apply caches first and the memory increase after observing their effect.
