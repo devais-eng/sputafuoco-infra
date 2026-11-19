@@ -15,12 +15,507 @@
   ],
   "panels": [
     {
+      "id": 31,
+      "title": "In esecuzione",
+      "description": "Alla fine del periodo selezionato; con intervallo live mostra i job attuali.",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(gha_running_jobs{actions_github_com_scale_set_name=~\"sputafuoco-arc(-tmpfs|-gpu)?\"})",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "N/D",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 32,
+      "title": "Completati",
+      "description": "Stima dei completamenti nel periodo selezionato, ricavata dai contatori ARC con increase e arrotondamento. Gestisce i reset osservati; nuovi contatori, intervalli brevi o buchi di raccolta possono sottostimare. La retention è 7 giorni. Se manca ogni campione ARC nel periodo, mostra N/D invece di zero.",
+      "type": "stat",
+      "gridPos": {
+        "x": 4,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "round(sum(increase(gha_completed_jobs_total{actions_github_com_scale_set_name=~\"sputafuoco-arc(-tmpfs|-gpu)?\"}[$__range]))) or (0 * sum(count_over_time(gha_running_jobs{actions_github_com_scale_set_name=~\"sputafuoco-arc(-tmpfs|-gpu)?\"}[$__range])))",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "N/D",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 33,
+      "title": "Riusciti",
+      "description": "Stima dei completamenti nel periodo selezionato, ricavata dai contatori ARC con increase e arrotondamento. Gestisce i reset osservati; nuovi contatori, intervalli brevi o buchi di raccolta possono sottostimare. La retention è 7 giorni. Se manca ogni campione ARC nel periodo, mostra N/D invece di zero.",
+      "type": "stat",
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "round(sum(increase(gha_completed_jobs_total{actions_github_com_scale_set_name=~\"sputafuoco-arc(-tmpfs|-gpu)?\",job_result=\"succeeded\"}[$__range]))) or (0 * sum(count_over_time(gha_running_jobs{actions_github_com_scale_set_name=~\"sputafuoco-arc(-tmpfs|-gpu)?\"}[$__range])))",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "N/D",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 34,
+      "title": "Falliti",
+      "description": "Stima dei completamenti nel periodo selezionato, ricavata dai contatori ARC con increase e arrotondamento. Gestisce i reset osservati; nuovi contatori, intervalli brevi o buchi di raccolta possono sottostimare. La retention è 7 giorni. Se manca ogni campione ARC nel periodo, mostra N/D invece di zero.",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "round(sum(increase(gha_completed_jobs_total{actions_github_com_scale_set_name=~\"sputafuoco-arc(-tmpfs|-gpu)?\",job_result=\"failed\"}[$__range]))) or (0 * sum(count_over_time(gha_running_jobs{actions_github_com_scale_set_name=~\"sputafuoco-arc(-tmpfs|-gpu)?\"}[$__range])))",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "N/D",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 35,
+      "title": "Cancellati",
+      "description": "Stima dei completamenti nel periodo selezionato, ricavata dai contatori ARC con increase e arrotondamento. Gestisce i reset osservati; nuovi contatori, intervalli brevi o buchi di raccolta possono sottostimare. La retention è 7 giorni. Se manca ogni campione ARC nel periodo, mostra N/D invece di zero.",
+      "type": "stat",
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "round(sum(increase(gha_completed_jobs_total{actions_github_com_scale_set_name=~\"sputafuoco-arc(-tmpfs|-gpu)?\",job_result=\"canceled\"}[$__range]))) or (0 * sum(count_over_time(gha_running_jobs{actions_github_com_scale_set_name=~\"sputafuoco-arc(-tmpfs|-gpu)?\"}[$__range])))",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "N/D",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 36,
+      "title": "Raccolta job",
+      "description": "Verde: lettura ARC riuscita negli ultimi 60 secondi. Un errore non equivale a zero job.",
+      "type": "stat",
+      "gridPos": {
+        "x": 20,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "min(ci_arc_job_collection_success{node=\"sputafuoco\"}) * (time() - max(ci_arc_job_collection_timestamp_seconds{node=\"sputafuoco\"}) < bool 60)",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "N/D",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "Errore",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "OK",
+                  "color": "green"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 37,
+      "title": "Dettagli dei job in esecuzione",
+      "description": "Job assegnati a pod Running su sputafuoco, aggiornati ogni 15 secondi più il tempo di scrape. Link alla run GitHub: ARC espone un UUID interno del job, non il suo ID numerico pubblico. Ora di inizio e durata del job non sono disponibili nel CR ARC e non vengono dedotte dalla creazione del pod. Nessuna riga può significare nessun job oppure raccolta non disponibile: controllare il riquadro Raccolta. Nei periodi storici mostra la situazione alla fine dell’intervallo.",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (node, runner, repository, workflow, ref, job_name, run_id, run_url) (ci_arc_running_job_info{node=\"sputafuoco\"} and on(instance) (ci_arc_job_collection_success == 1) and on(instance) (time() - ci_arc_job_collection_timestamp_seconds < 60))",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Value": true,
+              "node": true,
+              "run_id": true
+            },
+            "indexByName": {
+              "repository": 0,
+              "workflow": 1,
+              "job_name": 2,
+              "ref": 3,
+              "runner": 4,
+              "run_url": 5
+            },
+            "renameByName": {
+              "repository": "Repository",
+              "workflow": "Workflow",
+              "job_name": "Job",
+              "ref": "Riferimento",
+              "runner": "Runner",
+              "run_url": "GitHub"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto",
+              "wrapText": true
+            },
+            "inspect": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "GitHub"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Apri run",
+                    "url": "${__value.raw}",
+                    "targetBlank": true
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "data-links"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Repository"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 155
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Workflow"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 175
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Job"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 250
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Riferimento"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Runner"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 270
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "GitHub"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 95
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Runner",
+            "desc": false
+          }
+        ]
+      }
+    },
+    {
       "id": 1,
       "title": "CPU nodo",
       "type": "timeseries",
       "gridPos": {
         "x": 0,
-        "y": 0,
+        "y": 12,
         "w": 12,
         "h": 8
       },
@@ -60,7 +555,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 12,
-        "y": 0,
+        "y": 12,
         "w": 12,
         "h": 8
       },
@@ -100,7 +595,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 0,
-        "y": 8,
+        "y": 20,
         "w": 12,
         "h": 8
       },
@@ -140,7 +635,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 12,
-        "y": 8,
+        "y": 20,
         "w": 12,
         "h": 8
       },
@@ -180,7 +675,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 0,
-        "y": 16,
+        "y": 28,
         "w": 12,
         "h": 8
       },
@@ -279,7 +774,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 12,
-        "y": 16,
+        "y": 28,
         "w": 12,
         "h": 8
       },
@@ -378,7 +873,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 0,
-        "y": 24,
+        "y": 36,
         "w": 12,
         "h": 8
       },
@@ -477,7 +972,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 12,
-        "y": 24,
+        "y": 36,
         "w": 12,
         "h": 8
       },
@@ -576,7 +1071,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 0,
-        "y": 32,
+        "y": 44,
         "w": 12,
         "h": 8
       },
@@ -617,7 +1112,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 12,
-        "y": 32,
+        "y": 44,
         "w": 12,
         "h": 8
       },
@@ -658,7 +1153,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 0,
-        "y": 40,
+        "y": 52,
         "w": 12,
         "h": 8
       },
@@ -699,7 +1194,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 12,
-        "y": 40,
+        "y": 52,
         "w": 12,
         "h": 8
       },
@@ -740,7 +1235,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 0,
-        "y": 48,
+        "y": 60,
         "w": 12,
         "h": 8
       },
@@ -781,7 +1276,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 12,
-        "y": 48,
+        "y": 60,
         "w": 12,
         "h": 8
       },
@@ -822,7 +1317,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 0,
-        "y": 56,
+        "y": 68,
         "w": 12,
         "h": 8
       },
@@ -863,7 +1358,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 12,
-        "y": 56,
+        "y": 68,
         "w": 12,
         "h": 8
       },
@@ -929,7 +1424,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 0,
-        "y": 64,
+        "y": 76,
         "w": 12,
         "h": 8
       },
@@ -970,7 +1465,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 12,
-        "y": 64,
+        "y": 76,
         "w": 12,
         "h": 8
       },
@@ -1026,7 +1521,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 0,
-        "y": 72,
+        "y": 84,
         "w": 12,
         "h": 8
       },
@@ -1104,7 +1599,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 12,
-        "y": 72,
+        "y": 84,
         "w": 12,
         "h": 8
       },
@@ -1182,7 +1677,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 0,
-        "y": 80,
+        "y": 92,
         "w": 12,
         "h": 8
       },
@@ -1260,7 +1755,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 12,
-        "y": 80,
+        "y": 92,
         "w": 12,
         "h": 8
       },
@@ -1301,7 +1796,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 0,
-        "y": 88,
+        "y": 100,
         "w": 12,
         "h": 8
       },
@@ -1378,7 +1873,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 12,
-        "y": 88,
+        "y": 100,
         "w": 12,
         "h": 8
       },
@@ -1455,7 +1950,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 0,
-        "y": 96,
+        "y": 108,
         "w": 12,
         "h": 8
       },
@@ -1532,7 +2027,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 12,
-        "y": 96,
+        "y": 108,
         "w": 12,
         "h": 8
       },
@@ -1610,7 +2105,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 0,
-        "y": 104,
+        "y": 116,
         "w": 12,
         "h": 8
       },
@@ -1650,7 +2145,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 12,
-        "y": 104,
+        "y": 116,
         "w": 12,
         "h": 8
       },
@@ -1690,7 +2185,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 0,
-        "y": 112,
+        "y": 124,
         "w": 12,
         "h": 8
       },
@@ -1731,7 +2226,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 12,
-        "y": 112,
+        "y": 124,
         "w": 12,
         "h": 8
       },

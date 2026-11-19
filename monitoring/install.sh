@@ -22,6 +22,10 @@ helm upgrade --install ci-monitoring ./kube-prometheus-stack-92.21.2.tgz -n moni
 helm get values arc -n arc-systems > "arc-values-before-$(date +%s).yaml"
 helm upgrade arc ./gha-runner-scale-set-controller-0.15.1.tgz -n arc-systems --reuse-values -f arc-metrics-values.yaml --wait --timeout=3m
 kubectl -n monitoring create configmap ci-volume-usage-code --from-file=volume-usage/collector.py --dry-run=client -o yaml | kubectl apply -f -
+kubectl -n monitoring create configmap ci-job-overview-code --from-file=job-overview/collector.py --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply -f job-overview/resources.yaml
+kubectl -n monitoring rollout restart deployment/ci-job-overview
+kubectl -n monitoring rollout status deployment/ci-job-overview --timeout=180s
 kubectl apply -f volume-usage/resources.yaml -f dashboard.yaml -f alerts.yaml -f private-access.yaml
 kubectl -n monitoring rollout restart deployment/ci-volume-usage deployment/grafana-loopback-proxy
 kubectl -n monitoring rollout status deployment/grafana-loopback-proxy --timeout=180s

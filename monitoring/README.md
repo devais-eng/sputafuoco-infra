@@ -56,3 +56,11 @@ grafana:
 ```
 
 Use the node's Tailscale DNS name. Keep this overlay for every monitoring Helm upgrade; never commit the actual tailnet name, credentials, kubeconfig, or raw Helm values/backups. The installer requires this file before making changes.
+
+## Job overview
+
+The dashboard begins with ARC running-job count, estimated completions in the selected range, and succeeded/failed/canceled counts. Prometheus `increase` handles observed counter resets, but scrape gaps and newly created label series can miss events; rounded totals are estimates, not an audit ledger. Counts include only the sputafuoco scale sets and are limited by the seven-day retention.
+
+`ci-job-overview` lists EphemeralRunner metadata and pods every 15 seconds with a namespaced read-only Kubernetes service account; it cannot read Secrets or modify resources. Only running jobs on this node are exported. The table shows repository, workflow, job, ref, runner and a GitHub workflow-run link. ARC does not expose the numeric public job ID or job start timestamp, so no fabricated job URL/start time/duration is shown. Metadata is stored only in the private monitoring stack, not in this repository.
+
+Collection failure clears job rows and turns the collection indicator red; a successful empty list means no running jobs. The dashboard filters snapshots older than 60 seconds. Instant panels show the state at the selected range end (current state for live ranges). Runtime metadata is not backfilled before exporter deployment.

@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: ci-job-overview, namespace: monitoring}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: ci-job-overview, namespace: arc-runners}
+rules:
+  - apiGroups: [actions.github.com]
+    resources: [ephemeralrunners]
+    verbs: [list]
+  - apiGroups: ['']
+    resources: [pods]
+    verbs: [list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: ci-job-overview, namespace: arc-runners}
+subjects:
+  - {kind: ServiceAccount, name: ci-job-overview, namespace: monitoring}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: ci-job-overview}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: ci-job-overview, namespace: monitoring}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: ci-job-overview}
+  template:
+    metadata:
+      labels: {app: ci-job-overview}
+    spec:
+      serviceAccountName: ci-job-overview
+      nodeSelector: {kubernetes.io/hostname: sputafuoco}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: collector
+          image: python:3.13-slim
+          command: [python3, '-B', /app/collector.py]
+          env:
+            - {name: NODE_NAME, value: sputafuoco}
+            - {name: RUNNER_NAMESPACE, value: arc-runners}
+          ports: [{name: metrics, containerPort: 9109}]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          resources:
+            requests: {cpu: 10m, memory: 24Mi}
+            limits: {cpu: 100m, memory: 64Mi}
+          readinessProbe:
+            httpGet: {path: /healthz, port: metrics}
+          livenessProbe:
+            httpGet: {path: /healthz, port: metrics}
+          volumeMounts:
+            - {name: code, mountPath: /app, readOnly: true}
+      volumes:
+        - name: code
+          configMap: {name: ci-job-overview-code}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ci-job-overview
+  namespace: monitoring
+  labels: {app: ci-job-overview}
+spec:
+  selector: {app: ci-job-overview}
+  ports: [{name: metrics, port: 9109, targetPort: metrics}]
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ci-job-overview
+  namespace: monitoring
+  labels: {release: ci-monitoring}
+spec:
+  selector:
+    matchLabels: {app: ci-job-overview}
+  endpoints:
+    - {port: metrics, interval: 15s}
