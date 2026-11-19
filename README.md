@@ -9,7 +9,7 @@ Self-hosted GitHub Actions runners for the `devais-eng` organization: a single-n
 | k3s (single server) | `v1.37.2+k3s1` | — | [Install](#install-from-scratch) |
 | Helm | `v4.3.2` | — | — |
 | ARC controller (`gha-runner-scale-set-controller`) | `0.15.1` | `arc-systems` | — |
-| Scale set `sputafuoco-arc` (label `sallo`, min 0 / max 0 runners) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc.yaml` |
+| Scale set `sputafuoco-arc` (archived configuration; not installed) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc.yaml` |
 | Scale set `sputafuoco-arc-tmpfs` (label `sallo`, min 4 / max 4 runners) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc-tmpfs.yaml` |
 | Scale set `sputafuoco-arc-gpu` (label `sallo-gpu`, suspended: max 0 runners) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc-gpu.yaml` |
 | Dedicated SSD local-path provisioner (`runner-ssd`) | `0.0.37` | `arc-runners` | `arc/runner-ssd-provisioner.yaml` |
@@ -268,3 +268,7 @@ Run `sudo env EXPECTED_DATA_UUID=<verified-data-filesystem-uuid> bash scripts/pr
 The repository setup action must explicitly opt into this path, disable GitHub cache restore/save and per-job pruning, and use `UV_LINK_MODE=copy` only for shared-cache jobs. Do not set `UV_CACHE_DIR` globally: release/tag and other sensitive jobs must retain their isolated temporary cache. Existing workflows keep their current behavior until the action supports this contract. The mount itself is writable by jobs: this is not a security boundary for untrusted code; use a separate scale set without this mount when isolation is required.
 
 The cache survives pod deletion and has no enforced size quota. Monitor `du -sh /srv/data/ci-cache/uv` and free space on `/srv/data`. Maintenance should use the same uv version's cache commands during an idle window; do not delete cache internals manually or run per-job pruning. To roll back, restore the preceding Helm revisions; leave the HDD directory in place until no pod uses it.
+
+### Disabled legacy SSD pool
+
+The `sputafuoco-arc` Helm release is uninstalled after draining its jobs, so its ARC listener consumes no resources. Its `arc/values-sputafuoco-arc.yaml` remains versioned for explicit restoration, but `scripts/upgrade-scale-sets.sh` excludes it. The tmpfs pool remains at four workers; GPU configuration is unchanged. Restore the SSD release only deliberately with `helm upgrade --install sputafuoco-arc` and its retained values file.
