@@ -15,7 +15,8 @@ CHART=oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-se
 CHART_VERSION=0.15.1
 NAMESPACE=arc-runners
 KUBECONFIG_PATH=/etc/rancher/k3s/k3s.yaml
-SCALE_SETS=(sputafuoco-arc sputafuoco-arc-gpu sputafuoco-arc-tmpfs)
+# The legacy SSD pool is retained in arc/ but is not deployed.
+SCALE_SETS=(sputafuoco-arc-gpu sputafuoco-arc-tmpfs)
 
 ref=${1:-main}
 sha=$(git ls-remote "https://github.com/$REPO.git" "$ref" "refs/heads/$ref" "refs/tags/$ref" 2>/dev/null | awk 'NR==1{print $1}')

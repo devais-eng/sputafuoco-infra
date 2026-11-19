@@ -9,7 +9,7 @@ Self-hosted GitHub Actions runners for the `devais-eng` organization: a single-n
 | k3s (single server) | `v1.37.2+k3s1` | — | [Install](#install-from-scratch) |
 | Helm | `v4.3.2` | — | — |
 | ARC controller (`gha-runner-scale-set-controller`) | `0.15.1` | `arc-systems` | — |
-| Scale set `sputafuoco-arc` (label `sallo`, min 0 / max 0 runners) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc.yaml` |
+| Scale set `sputafuoco-arc` (archived configuration; not installed) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc.yaml` |
 | Scale set `sputafuoco-arc-tmpfs` (label `sallo`, min 4 / max 4 runners) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc-tmpfs.yaml` |
 | Scale set `sputafuoco-arc-gpu` (label `sallo-gpu`, suspended: max 0 runners) | `0.15.1` | `arc-runners` | `arc/values-sputafuoco-arc-gpu.yaml` |
 | Dedicated SSD local-path provisioner (`runner-ssd`) | `0.0.37` | `arc-runners` | `arc/runner-ssd-provisioner.yaml` |
@@ -275,3 +275,7 @@ Run `sudo bash scripts/prepare-ci-ssd-caches.sh --check` then `--apply` on sputa
 Apply the Deployment document from `registry-mirror/registry-mirror.yaml` first, wait for `deployment/registry-mirror-ssd` to be ready, then apply its Service document. This changes the existing service endpoint without terminating the old registry, which remains available for in-flight connections and rollback. The new cache starts cold and warms from Docker Hub; it does not copy an actively written registry datastore. After observing the new endpoint, scale the old `registry-mirror` Deployment to zero.
 
 Upgrade runner templates to the SSD uv path; existing jobs retain their HDD mounts until completion. Apply the 5 GiB DinD limit as a separate measurement step. Shared uv and registry caches are persistent and compete with ephemeral Docker volumes for SSD space. Check their size and free space periodically; prune uv with `uv cache prune` as UID 1001 during a quiet maintenance window. Do not blindly delete registry blob files or prune during an active migration. For rollback, restore the old service selector and HDD uv path; no HDD source is deleted by preparation.
+
+### Disabled legacy SSD pool
+
+The `sputafuoco-arc` Helm release is uninstalled after draining its jobs, so its ARC listener consumes no resources. Its `arc/values-sputafuoco-arc.yaml` remains versioned for explicit restoration, but `scripts/upgrade-scale-sets.sh` excludes it. The tmpfs pool remains at four workers; GPU configuration is unchanged. Restore the SSD release only deliberately with `helm upgrade --install sputafuoco-arc` and its retained values file.
