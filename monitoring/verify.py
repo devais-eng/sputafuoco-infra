@@ -10,17 +10,17 @@ def get(path):
 targets=get('/api/v1/targets')['data']['activeTargets']
 for t in targets:
  print('TARGET',t['labels'].get('job'),t['health'],t['lastError'])
-required={'monitoring/arc':3,'node-exporter':1,'kubelet':3,'kube-state-metrics':1,'ci-volume-usage':1}
+required={'monitoring/arc':3,'node-exporter':1,'kubelet':3,'kube-state-metrics':1,'ci-volume-usage':1,'ci-job-overview':1}
 for job,minimum in required.items():
  assert sum(t['labels'].get('job')==job for t in targets)>=minimum, 'Missing targets: '+job
 d=json.loads(pathlib.Path(__file__).with_name('dashboard.json').read_text())
 for panel in d['panels']:
- expr=panel['targets'][0]['expr'].replace('$__rate_interval','5m')
+ expr=panel['targets'][0]['expr'].replace('$__rate_interval','5m').replace('$__range','1h')
  r=get('/api/v1/query?'+urllib.parse.urlencode({'query':expr}))
  assert r['status']=='success',r
  count=len(r['data']['result'])
  print('QUERY',panel['title'],'series=',count)
- if panel['title'] not in ['Spazio SSD per runner · workspace e Docker','ARC: avvio job p95']:
+ if panel['title'] not in ['Spazio SSD per runner · workspace e Docker','ARC: avvio job p95','Dettagli dei job in esecuzione']:
   assert count>0, 'Missing metric: '+panel['title']
 password=os.environ.get('GRAFANA_PASSWORD')
 if password is None:

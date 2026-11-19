@@ -8,32 +8,130 @@ metadata:
 data:
   sputafuoco-ci.json: '{"uid": "sputafuoco-ci", "title": "Sputafuoco · CI", "schemaVersion":
     39, "version": 1, "timezone": "Europe/Rome", "refresh": "30s", "time": {"from":
-    "now-1h", "to": "now"}, "tags": ["CI", "sputafuoco"], "panels": [{"id": 1, "title":
-    "CPU nodo", "type": "timeseries", "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
-    "datasource": {"type": "prometheus", "uid": "prometheus"}, "targets": [{"refId":
-    "A", "expr": "100 * (1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[$__rate_interval])))",
+    "now-1h", "to": "now"}, "tags": ["CI", "sputafuoco"], "panels": [{"id": 31, "title":
+    "In esecuzione", "description": "Alla fine del periodo selezionato; con intervallo
+    live mostra i job attuali.", "type": "stat", "gridPos": {"x": 0, "y": 0, "w":
+    4, "h": 4}, "datasource": {"type": "prometheus", "uid": "prometheus"}, "targets":
+    [{"refId": "A", "expr": "sum(gha_running_jobs{actions_github_com_scale_set_name=~\"sputafuoco-arc(-tmpfs|-gpu)?\"})",
+    "instant": true, "range": false}], "fieldConfig": {"defaults": {"unit": "short",
+    "decimals": 0, "noValue": "N/D", "color": {"mode": "fixed", "fixedColor": "blue"}},
+    "overrides": []}, "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields":
+    "", "values": false}, "orientation": "auto", "colorMode": "value", "graphMode":
+    "none", "textMode": "auto"}}, {"id": 32, "title": "Completati", "description":
+    "Stima dei completamenti nel periodo selezionato, ricavata dai contatori ARC con
+    increase e arrotondamento. Gestisce i reset osservati; nuovi contatori, intervalli
+    brevi o buchi di raccolta possono sottostimare. La retention è 7 giorni. Se manca
+    ogni campione ARC nel periodo, mostra N/D invece di zero.", "type": "stat", "gridPos":
+    {"x": 4, "y": 0, "w": 4, "h": 4}, "datasource": {"type": "prometheus", "uid":
+    "prometheus"}, "targets": [{"refId": "A", "expr": "round(sum(increase(gha_completed_jobs_total{actions_github_com_scale_set_name=~\"sputafuoco-arc(-tmpfs|-gpu)?\"}[$__range])))
+    or (0 * sum(count_over_time(gha_running_jobs{actions_github_com_scale_set_name=~\"sputafuoco-arc(-tmpfs|-gpu)?\"}[$__range])))",
+    "instant": true, "range": false}], "fieldConfig": {"defaults": {"unit": "short",
+    "decimals": 0, "noValue": "N/D", "color": {"mode": "fixed", "fixedColor": "blue"}},
+    "overrides": []}, "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields":
+    "", "values": false}, "orientation": "auto", "colorMode": "value", "graphMode":
+    "none", "textMode": "auto"}}, {"id": 33, "title": "Riusciti", "description": "Stima
+    dei completamenti nel periodo selezionato, ricavata dai contatori ARC con increase
+    e arrotondamento. Gestisce i reset osservati; nuovi contatori, intervalli brevi
+    o buchi di raccolta possono sottostimare. La retention è 7 giorni. Se manca ogni
+    campione ARC nel periodo, mostra N/D invece di zero.", "type": "stat", "gridPos":
+    {"x": 8, "y": 0, "w": 4, "h": 4}, "datasource": {"type": "prometheus", "uid":
+    "prometheus"}, "targets": [{"refId": "A", "expr": "round(sum(increase(gha_completed_jobs_total{actions_github_com_scale_set_name=~\"sputafuoco-arc(-tmpfs|-gpu)?\",job_result=\"succeeded\"}[$__range])))
+    or (0 * sum(count_over_time(gha_running_jobs{actions_github_com_scale_set_name=~\"sputafuoco-arc(-tmpfs|-gpu)?\"}[$__range])))",
+    "instant": true, "range": false}], "fieldConfig": {"defaults": {"unit": "short",
+    "decimals": 0, "noValue": "N/D", "color": {"mode": "fixed", "fixedColor": "blue"}},
+    "overrides": []}, "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields":
+    "", "values": false}, "orientation": "auto", "colorMode": "value", "graphMode":
+    "none", "textMode": "auto"}}, {"id": 34, "title": "Falliti", "description": "Stima
+    dei completamenti nel periodo selezionato, ricavata dai contatori ARC con increase
+    e arrotondamento. Gestisce i reset osservati; nuovi contatori, intervalli brevi
+    o buchi di raccolta possono sottostimare. La retention è 7 giorni. Se manca ogni
+    campione ARC nel periodo, mostra N/D invece di zero.", "type": "stat", "gridPos":
+    {"x": 12, "y": 0, "w": 4, "h": 4}, "datasource": {"type": "prometheus", "uid":
+    "prometheus"}, "targets": [{"refId": "A", "expr": "round(sum(increase(gha_completed_jobs_total{actions_github_com_scale_set_name=~\"sputafuoco-arc(-tmpfs|-gpu)?\",job_result=\"failed\"}[$__range])))
+    or (0 * sum(count_over_time(gha_running_jobs{actions_github_com_scale_set_name=~\"sputafuoco-arc(-tmpfs|-gpu)?\"}[$__range])))",
+    "instant": true, "range": false}], "fieldConfig": {"defaults": {"unit": "short",
+    "decimals": 0, "noValue": "N/D", "color": {"mode": "fixed", "fixedColor": "blue"}},
+    "overrides": []}, "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields":
+    "", "values": false}, "orientation": "auto", "colorMode": "value", "graphMode":
+    "none", "textMode": "auto"}}, {"id": 35, "title": "Cancellati", "description":
+    "Stima dei completamenti nel periodo selezionato, ricavata dai contatori ARC con
+    increase e arrotondamento. Gestisce i reset osservati; nuovi contatori, intervalli
+    brevi o buchi di raccolta possono sottostimare. La retention è 7 giorni. Se manca
+    ogni campione ARC nel periodo, mostra N/D invece di zero.", "type": "stat", "gridPos":
+    {"x": 16, "y": 0, "w": 4, "h": 4}, "datasource": {"type": "prometheus", "uid":
+    "prometheus"}, "targets": [{"refId": "A", "expr": "round(sum(increase(gha_completed_jobs_total{actions_github_com_scale_set_name=~\"sputafuoco-arc(-tmpfs|-gpu)?\",job_result=\"canceled\"}[$__range])))
+    or (0 * sum(count_over_time(gha_running_jobs{actions_github_com_scale_set_name=~\"sputafuoco-arc(-tmpfs|-gpu)?\"}[$__range])))",
+    "instant": true, "range": false}], "fieldConfig": {"defaults": {"unit": "short",
+    "decimals": 0, "noValue": "N/D", "color": {"mode": "fixed", "fixedColor": "blue"}},
+    "overrides": []}, "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields":
+    "", "values": false}, "orientation": "auto", "colorMode": "value", "graphMode":
+    "none", "textMode": "auto"}}, {"id": 36, "title": "Raccolta job", "description":
+    "Verde: lettura ARC riuscita negli ultimi 60 secondi. Un errore non equivale a
+    zero job.", "type": "stat", "gridPos": {"x": 20, "y": 0, "w": 4, "h": 4}, "datasource":
+    {"type": "prometheus", "uid": "prometheus"}, "targets": [{"refId": "A", "expr":
+    "min(ci_arc_job_collection_success{node=\"sputafuoco\"}) * (time() - max(ci_arc_job_collection_timestamp_seconds{node=\"sputafuoco\"})
+    < bool 60)", "instant": true, "range": false}], "fieldConfig": {"defaults": {"unit":
+    "short", "decimals": 0, "noValue": "N/D", "color": {"mode": "thresholds"}, "thresholds":
+    {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green",
+    "value": 1}]}, "mappings": [{"type": "value", "options": {"0": {"text": "Errore",
+    "color": "red"}, "1": {"text": "OK", "color": "green"}}}]}, "overrides": []},
+    "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values":
+    false}, "orientation": "auto", "colorMode": "value", "graphMode": "none", "textMode":
+    "auto"}}, {"id": 37, "title": "Dettagli dei job in esecuzione", "description":
+    "Job assegnati a pod Running su sputafuoco, aggiornati ogni 15 secondi più il
+    tempo di scrape. Link alla run GitHub: ARC espone un UUID interno del job, non
+    il suo ID numerico pubblico. Ora di inizio e durata del job non sono disponibili
+    nel CR ARC e non vengono dedotte dalla creazione del pod. Nessuna riga può significare
+    nessun job oppure raccolta non disponibile: controllare il riquadro Raccolta.
+    Nei periodi storici mostra la situazione alla fine dell’intervallo.", "type":
+    "table", "gridPos": {"x": 0, "y": 4, "w": 24, "h": 8}, "datasource": {"type":
+    "prometheus", "uid": "prometheus"}, "targets": [{"refId": "A", "expr": "max by
+    (node, runner, repository, workflow, ref, job_name, run_id, run_url) (ci_arc_running_job_info{node=\"sputafuoco\"}
+    and on(instance) (ci_arc_job_collection_success == 1) and on(instance) (time()
+    - ci_arc_job_collection_timestamp_seconds < 60))", "instant": true, "range": false,
+    "format": "table"}], "transformations": [{"id": "organize", "options": {"excludeByName":
+    {"Time": true, "Value": true, "node": true, "run_id": true}, "indexByName": {"repository":
+    0, "workflow": 1, "job_name": 2, "ref": 3, "runner": 4, "run_url": 5}, "renameByName":
+    {"repository": "Repository", "workflow": "Workflow", "job_name": "Job", "ref":
+    "Riferimento", "runner": "Runner", "run_url": "GitHub"}}}], "fieldConfig": {"defaults":
+    {"custom": {"align": "auto", "cellOptions": {"type": "auto", "wrapText": true},
+    "inspect": false}}, "overrides": [{"matcher": {"id": "byName", "options": "GitHub"},
+    "properties": [{"id": "links", "value": [{"title": "Apri run", "url": "${__value.raw}",
+    "targetBlank": true}]}, {"id": "custom.cellOptions", "value": {"type": "data-links"}}]},
+    {"matcher": {"id": "byName", "options": "Repository"}, "properties": [{"id": "custom.width",
+    "value": 155}]}, {"matcher": {"id": "byName", "options": "Workflow"}, "properties":
+    [{"id": "custom.width", "value": 175}]}, {"matcher": {"id": "byName", "options":
+    "Job"}, "properties": [{"id": "custom.width", "value": 250}]}, {"matcher": {"id":
+    "byName", "options": "Riferimento"}, "properties": [{"id": "custom.width", "value":
+    170}]}, {"matcher": {"id": "byName", "options": "Runner"}, "properties": [{"id":
+    "custom.width", "value": 270}]}, {"matcher": {"id": "byName", "options": "GitHub"},
+    "properties": [{"id": "custom.width", "value": 95}]}]}, "options": {"showHeader":
+    true, "cellHeight": "sm", "sortBy": [{"displayName": "Runner", "desc": false}]}},
+    {"id": 1, "title": "CPU nodo", "type": "timeseries", "gridPos": {"x": 0, "y":
+    12, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
+    "targets": [{"refId": "A", "expr": "100 * (1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[$__rate_interval])))",
     "legendFormat": "CPU"}], "fieldConfig": {"defaults": {"unit": "percent"}, "overrides":
     []}, "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs":
     ["lastNotNull"]}, "tooltip": {"mode": "multi"}}}, {"id": 2, "title": "RAM utilizzata",
-    "type": "timeseries", "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8}, "datasource":
+    "type": "timeseries", "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8}, "datasource":
     {"type": "prometheus", "uid": "prometheus"}, "targets": [{"refId": "A", "expr":
     "max without (pod) (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)",
     "legendFormat": "RAM"}], "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides":
     []}, "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs":
     ["lastNotNull"]}, "tooltip": {"mode": "multi"}}}, {"id": 3, "title": "RAM disponibile",
-    "type": "timeseries", "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8}, "datasource":
+    "type": "timeseries", "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8}, "datasource":
     {"type": "prometheus", "uid": "prometheus"}, "targets": [{"refId": "A", "expr":
     "max without (pod) (node_memory_MemAvailable_bytes)", "legendFormat": "Disponibile"}],
     "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []}, "options": {"legend":
     {"displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull"]}, "tooltip":
     {"mode": "multi"}}}, {"id": 4, "title": "Swap utilizzata", "type": "timeseries",
-    "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8}, "datasource": {"type": "prometheus",
+    "gridPos": {"x": 12, "y": 20, "w": 12, "h": 8}, "datasource": {"type": "prometheus",
     "uid": "prometheus"}, "targets": [{"refId": "A", "expr": "max without (pod) (node_memory_SwapTotal_bytes
     - node_memory_SwapFree_bytes)", "legendFormat": "Swap"}], "fieldConfig": {"defaults":
     {"unit": "bytes"}, "overrides": []}, "options": {"legend": {"displayMode": "table",
     "placement": "bottom", "calcs": ["lastNotNull"]}, "tooltip": {"mode": "multi"}}},
     {"id": 5, "title": "Filesystem: spazio utilizzato", "type": "timeseries", "gridPos":
-    {"x": 0, "y": 16, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid":
+    {"x": 0, "y": 28, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid":
     "prometheus"}, "targets": [{"refId": "A", "expr": "max without (pod) (node_filesystem_size_bytes{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"}
     - node_filesystem_free_bytes{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"})", "legendFormat":
     "{{mountpoint}}"}], "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides":
@@ -50,7 +148,7 @@ data:
     Dati: md1p1, mirror sui due HDD. Runner: sda3, partizione SSD dedicata e non replicata.
     Le capacità dei filesystem sono espresse in unità binarie; le etichette dei dischi
     fisici indicano la capacità commerciale."}, {"id": 6, "title": "Filesystem: spazio
-    disponibile", "type": "timeseries", "gridPos": {"x": 12, "y": 16, "w": 12, "h":
+    disponibile", "type": "timeseries", "gridPos": {"x": 12, "y": 28, "w": 12, "h":
     8}, "datasource": {"type": "prometheus", "uid": "prometheus"}, "targets": [{"refId":
     "A", "expr": "max without (pod) (node_filesystem_avail_bytes{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"})",
     "legendFormat": "{{mountpoint}}"}], "fieldConfig": {"defaults": {"unit": "bytes"},
@@ -68,7 +166,7 @@ data:
     dedicata e non replicata. Le capacità dei filesystem sono espresse in unità binarie;
     le etichette dei dischi fisici indicano la capacità commerciale."}, {"id": 7,
     "title": "Filesystem: capacità totale", "type": "timeseries", "gridPos": {"x":
-    0, "y": 24, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
+    0, "y": 36, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
     "targets": [{"refId": "A", "expr": "max without (pod) (node_filesystem_size_bytes{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"})",
     "legendFormat": "{{mountpoint}}"}], "fieldConfig": {"defaults": {"unit": "bytes"},
     "overrides": [{"matcher": {"id": "byName", "options": "/"}, "properties": [{"id":
@@ -85,7 +183,7 @@ data:
     dedicata e non replicata. Le capacità dei filesystem sono espresse in unità binarie;
     le etichette dei dischi fisici indicano la capacità commerciale."}, {"id": 8,
     "title": "Filesystem: inode utilizzati", "type": "timeseries", "gridPos": {"x":
-    12, "y": 24, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
+    12, "y": 36, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
     "targets": [{"refId": "A", "expr": "max without (pod) (100 * (1-node_filesystem_files_free{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"}/node_filesystem_files{mountpoint=~\"/|/srv/data|/srv/runner-ssd\"}))",
     "legendFormat": "{{mountpoint}}"}], "fieldConfig": {"defaults": {"unit": "percent"},
     "overrides": [{"matcher": {"id": "byName", "options": "/"}, "properties": [{"id":
@@ -102,7 +200,7 @@ data:
     dedicata e non replicata. Le capacità dei filesystem sono espresse in unità binarie;
     le etichette dei dischi fisici indicano la capacità commerciale."}, {"id": 9,
     "title": "Pressione CPU nodo (some)", "type": "timeseries", "gridPos": {"x": 0,
-    "y": 32, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
+    "y": 44, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
     "targets": [{"refId": "A", "expr": "max without (pod) (100 * rate(node_pressure_cpu_waiting_seconds_total[$__rate_interval]))",
     "legendFormat": "CPU"}], "fieldConfig": {"defaults": {"unit": "percent"}, "overrides":
     []}, "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs":
@@ -110,7 +208,7 @@ data:
     di tempo in cui il lavoro resta in attesa di una risorsa. Some = almeno un task
     in attesa; full = tutti i task non inattivi bloccati. Non indica semplicemente
     quanto la risorsa è utilizzata."}, {"id": 10, "title": "Pressione RAM nodo (some)",
-    "type": "timeseries", "gridPos": {"x": 12, "y": 32, "w": 12, "h": 8}, "datasource":
+    "type": "timeseries", "gridPos": {"x": 12, "y": 44, "w": 12, "h": 8}, "datasource":
     {"type": "prometheus", "uid": "prometheus"}, "targets": [{"refId": "A", "expr":
     "max without (pod) (100 * rate(node_pressure_memory_waiting_seconds_total[$__rate_interval]))",
     "legendFormat": "RAM"}], "fieldConfig": {"defaults": {"unit": "percent"}, "overrides":
@@ -119,7 +217,7 @@ data:
     di tempo in cui il lavoro resta in attesa di una risorsa. Some = almeno un task
     in attesa; full = tutti i task non inattivi bloccati. Non indica semplicemente
     quanto la risorsa è utilizzata."}, {"id": 11, "title": "Pressione I/O nodo (some)",
-    "type": "timeseries", "gridPos": {"x": 0, "y": 40, "w": 12, "h": 8}, "datasource":
+    "type": "timeseries", "gridPos": {"x": 0, "y": 52, "w": 12, "h": 8}, "datasource":
     {"type": "prometheus", "uid": "prometheus"}, "targets": [{"refId": "A", "expr":
     "max without (pod) (100 * rate(node_pressure_io_waiting_seconds_total[$__rate_interval]))",
     "legendFormat": "I/O some"}], "fieldConfig": {"defaults": {"unit": "percent"},
@@ -128,7 +226,7 @@ data:
     "PSI: percentuale di tempo in cui il lavoro resta in attesa di una risorsa. Some
     = almeno un task in attesa; full = tutti i task non inattivi bloccati. Non indica
     semplicemente quanto la risorsa è utilizzata."}, {"id": 12, "title": "Pressione
-    I/O nodo (full)", "type": "timeseries", "gridPos": {"x": 12, "y": 40, "w": 12,
+    I/O nodo (full)", "type": "timeseries", "gridPos": {"x": 12, "y": 52, "w": 12,
     "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"}, "targets":
     [{"refId": "A", "expr": "max without (pod) (100 * rate(node_pressure_io_stalled_seconds_total[$__rate_interval]))",
     "legendFormat": "I/O full"}], "fieldConfig": {"defaults": {"unit": "percent"},
@@ -137,7 +235,7 @@ data:
     "PSI: percentuale di tempo in cui il lavoro resta in attesa di una risorsa. Some
     = almeno un task in attesa; full = tutti i task non inattivi bloccati. Non indica
     semplicemente quanto la risorsa è utilizzata."}, {"id": 13, "title": "CPU per
-    pod · core utilizzati", "type": "timeseries", "gridPos": {"x": 0, "y": 48, "w":
+    pod · core utilizzati", "type": "timeseries", "gridPos": {"x": 0, "y": 60, "w":
     12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"}, "targets":
     [{"refId": "A", "expr": "sum by(namespace,pod)(rate(container_cpu_usage_seconds_total{pod!=\"\",container!=\"\",container!=\"POD\"}[$__rate_interval]))",
     "legendFormat": "{{namespace}} / {{pod}}"}], "fieldConfig": {"defaults": {"unit":
@@ -145,7 +243,7 @@ data:
     "bottom", "calcs": ["lastNotNull"]}, "tooltip": {"mode": "multi"}}, "description":
     "1 core = un processore logico occupato. Sputafuoco dispone di 12 processori logici.
     Include tutti i namespace, anche il monitoraggio."}, {"id": 14, "title": "RAM
-    per pod (working set)", "type": "timeseries", "gridPos": {"x": 12, "y": 48, "w":
+    per pod (working set)", "type": "timeseries", "gridPos": {"x": 12, "y": 60, "w":
     12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"}, "targets":
     [{"refId": "A", "expr": "sum by(namespace,pod)(container_memory_working_set_bytes{pod!=\"\",container!=\"\",container!=\"POD\"})",
     "legendFormat": "{{namespace}} / {{pod}}"}], "fieldConfig": {"defaults": {"unit":
@@ -154,7 +252,7 @@ data:
     "Working set: memoria in uso meno la cache inattiva recuperabile. Include tutti
     i namespace. Non è la memoria richiesta o il limite configurato nel pod."}, {"id":
     15, "title": "Pressione I/O per pod", "type": "timeseries", "gridPos": {"x": 0,
-    "y": 56, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
+    "y": 68, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
     "targets": [{"refId": "A", "expr": "100 * sum by(namespace,pod)(rate(container_pressure_io_waiting_seconds_total{pod!=\"\",container=\"\",id=~\".*pod[^/]+[.]slice\"}[$__rate_interval]))",
     "legendFormat": "{{namespace}} / {{pod}}"}], "fieldConfig": {"defaults": {"unit":
     "percent"}, "overrides": []}, "options": {"legend": {"displayMode": "table", "placement":
@@ -163,7 +261,7 @@ data:
     = almeno un task in attesa; full = tutti i task non inattivi bloccati. Non indica
     semplicemente quanto la risorsa è utilizzata."}, {"id": 16, "title": "Spazio SSD
     per runner · workspace e Docker", "type": "timeseries", "gridPos": {"x": 12, "y":
-    56, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
+    68, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
     "targets": [{"refId": "A", "expr": "ci_runner_volume_used_bytes", "legendFormat":
     "{{pod}} · {{volume}}"}], "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides":
     [{"matcher": {"id": "byRegexp", "options": ".* · work$"}, "properties": [{"id":
@@ -175,7 +273,7 @@ data:
     Workspace e dati Docker sono separati. Controllare sempre età e stato della raccolta
     nei pannelli successivi. Nessuna quota viene imposta dalle richieste dei PVC."},
     {"id": 17, "title": "Età rilevamento spazio runner", "type": "timeseries", "gridPos":
-    {"x": 0, "y": 64, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid":
+    {"x": 0, "y": 76, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid":
     "prometheus"}, "targets": [{"refId": "A", "expr": "time() - ci_runner_volume_collection_timestamp_seconds",
     "legendFormat": "Età"}], "fieldConfig": {"defaults": {"unit": "s"}, "overrides":
     []}, "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs":
@@ -183,7 +281,7 @@ data:
     dall’ultima scansione completa riuscita. Una scansione avviene ogni 120 secondi;
     oltre 360 secondi i valori devono essere considerati obsoleti."}, {"id": 18, "title":
     "Rilevamento spazio runner riuscito", "type": "timeseries", "gridPos": {"x": 12,
-    "y": 64, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
+    "y": 76, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
     "targets": [{"refId": "A", "expr": "ci_runner_volume_collection_success", "legendFormat":
     "Successo (1)"}], "fieldConfig": {"defaults": {"unit": "short", "mappings": [{"type":
     "value", "options": {"0": {"text": "Errore", "color": "red"}, "1": {"text": "OK",
@@ -192,7 +290,7 @@ data:
     "multi"}}, "description": "1 = ultima scansione riuscita; 0 = errore. In caso
     di errore gli ultimi valori restano visibili, ma possono essere obsoleti."}, {"id":
     19, "title": "Letture per disco fisico", "type": "timeseries", "gridPos": {"x":
-    0, "y": 72, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
+    0, "y": 84, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
     "targets": [{"refId": "A", "expr": "max without (pod) (rate(node_disk_read_bytes_total{device=~\"sd[a-c]\"}[$__rate_interval]))",
     "legendFormat": "{{device}}"}], "fieldConfig": {"defaults": {"unit": "Bps"}, "overrides":
     [{"matcher": {"id": "byName", "options": "sda"}, "properties": [{"id": "displayName",
@@ -205,7 +303,7 @@ data:
     sdc = due HDD Western Digital da 1 TB. Ogni HDD partecipa sia al RAID di sistema
     sia al RAID dati. Questi grafici non sommano nuovamente le metriche dei dispositivi
     RAID."}, {"id": 20, "title": "Scritture per disco fisico", "type": "timeseries",
-    "gridPos": {"x": 12, "y": 72, "w": 12, "h": 8}, "datasource": {"type": "prometheus",
+    "gridPos": {"x": 12, "y": 84, "w": 12, "h": 8}, "datasource": {"type": "prometheus",
     "uid": "prometheus"}, "targets": [{"refId": "A", "expr": "max without (pod) (rate(node_disk_written_bytes_total{device=~\"sd[a-c]\"}[$__rate_interval]))",
     "legendFormat": "{{device}}"}], "fieldConfig": {"defaults": {"unit": "Bps"}, "overrides":
     [{"matcher": {"id": "byName", "options": "sda"}, "properties": [{"id": "displayName",
@@ -218,7 +316,7 @@ data:
     sdc = due HDD Western Digital da 1 TB. Ogni HDD partecipa sia al RAID di sistema
     sia al RAID dati. Questi grafici non sommano nuovamente le metriche dei dispositivi
     RAID."}, {"id": 21, "title": "Tempo disco occupato", "type": "timeseries", "gridPos":
-    {"x": 0, "y": 80, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid":
+    {"x": 0, "y": 92, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid":
     "prometheus"}, "targets": [{"refId": "A", "expr": "max without (pod) (100 * rate(node_disk_io_time_seconds_total{device=~\"sd[a-c]\"}[$__rate_interval]))",
     "legendFormat": "{{device}}"}], "fieldConfig": {"defaults": {"unit": "percent"},
     "overrides": [{"matcher": {"id": "byName", "options": "sda"}, "properties": [{"id":
@@ -231,7 +329,7 @@ data:
     sdb e sdc = due HDD Western Digital da 1 TB. Ogni HDD partecipa sia al RAID di
     sistema sia al RAID dati. Questi grafici non sommano nuovamente le metriche dei
     dispositivi RAID."}, {"id": 22, "title": "Carico medio · riferimento: 12 CPU logiche",
-    "type": "timeseries", "gridPos": {"x": 12, "y": 80, "w": 12, "h": 8}, "datasource":
+    "type": "timeseries", "gridPos": {"x": 12, "y": 92, "w": 12, "h": 8}, "datasource":
     {"type": "prometheus", "uid": "prometheus"}, "targets": [{"refId": "A", "expr":
     "max without (pod) (node_load1)", "legendFormat": "Load 1m"}], "fieldConfig":
     {"defaults": {"unit": "short"}, "overrides": []}, "options": {"legend": {"displayMode":
@@ -239,7 +337,7 @@ data:
     "multi"}}, "description": "Load average a 1 minuto: task in esecuzione o in attesa
     non interrompibile, incluso I/O. Non è una percentuale. La macchina dispone di
     12 CPU logiche."}, {"id": 23, "title": "ARC: job in esecuzione", "type": "timeseries",
-    "gridPos": {"x": 0, "y": 88, "w": 12, "h": 8}, "datasource": {"type": "prometheus",
+    "gridPos": {"x": 0, "y": 100, "w": 12, "h": 8}, "datasource": {"type": "prometheus",
     "uid": "prometheus"}, "targets": [{"refId": "A", "expr": "gha_running_jobs", "legendFormat":
     "{{actions_github_com_scale_set_name}}"}], "fieldConfig": {"defaults": {"unit":
     "short"}, "overrides": [{"matcher": {"id": "byName", "options": "sputafuoco-arc"},
@@ -250,7 +348,7 @@ data:
     "Runner tmpfs · min 4 / max 4"}]}]}, "options": {"legend": {"displayMode": "table",
     "placement": "bottom", "calcs": ["lastNotNull"]}, "tooltip": {"mode": "multi"}}},
     {"id": 24, "title": "ARC: runner desiderati", "type": "timeseries", "gridPos":
-    {"x": 12, "y": 88, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid":
+    {"x": 12, "y": 100, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid":
     "prometheus"}, "targets": [{"refId": "A", "expr": "gha_desired_runners", "legendFormat":
     "{{actions_github_com_scale_set_name}}"}], "fieldConfig": {"defaults": {"unit":
     "short"}, "overrides": [{"matcher": {"id": "byName", "options": "sputafuoco-arc"},
@@ -261,7 +359,7 @@ data:
     "Runner tmpfs · min 4 / max 4"}]}]}, "options": {"legend": {"displayMode": "table",
     "placement": "bottom", "calcs": ["lastNotNull"]}, "tooltip": {"mode": "multi"}}},
     {"id": 25, "title": "ARC: runner disponibili", "type": "timeseries", "gridPos":
-    {"x": 0, "y": 96, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid":
+    {"x": 0, "y": 108, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid":
     "prometheus"}, "targets": [{"refId": "A", "expr": "gha_idle_runners", "legendFormat":
     "{{actions_github_com_scale_set_name}}"}], "fieldConfig": {"defaults": {"unit":
     "short"}, "overrides": [{"matcher": {"id": "byName", "options": "sputafuoco-arc"},
@@ -272,7 +370,7 @@ data:
     "Runner tmpfs · min 4 / max 4"}]}]}, "options": {"legend": {"displayMode": "table",
     "placement": "bottom", "calcs": ["lastNotNull"]}, "tooltip": {"mode": "multi"}}},
     {"id": 26, "title": "ARC: avvio job p95", "type": "timeseries", "gridPos": {"x":
-    12, "y": 96, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
+    12, "y": 108, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
     "targets": [{"refId": "A", "expr": "histogram_quantile(0.95, sum by(le,actions_github_com_scale_set_name)(rate(gha_job_startup_duration_seconds_bucket[$__rate_interval])))",
     "legendFormat": "{{actions_github_com_scale_set_name}}"}], "fieldConfig": {"defaults":
     {"unit": "s"}, "overrides": [{"matcher": {"id": "byName", "options": "sputafuoco-arc"},
@@ -285,19 +383,19 @@ data:
     "description": "Tempo entro cui viene avviato il 95% dei job osservati nella finestra.
     Se non ci sono nuovi avvii nella finestra, il percentile può non essere disponibile."},
     {"id": 27, "title": "Pod in Pending", "type": "timeseries", "gridPos": {"x": 0,
-    "y": 104, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
+    "y": 116, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
     "targets": [{"refId": "A", "expr": "sum by(namespace)(kube_pod_status_phase{phase=\"Pending\"})",
     "legendFormat": "{{namespace}}"}], "fieldConfig": {"defaults": {"unit": "short"},
     "overrides": []}, "options": {"legend": {"displayMode": "table", "placement":
     "bottom", "calcs": ["lastNotNull"]}, "tooltip": {"mode": "multi"}}}, {"id": 28,
     "title": "Restart container (1h)", "type": "timeseries", "gridPos": {"x": 12,
-    "y": 104, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
+    "y": 116, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
     "targets": [{"refId": "A", "expr": "sum by(namespace,pod)(increase(kube_pod_container_status_restarts_total[1h]))",
     "legendFormat": "{{namespace}} / {{pod}}"}], "fieldConfig": {"defaults": {"unit":
     "short"}, "overrides": []}, "options": {"legend": {"displayMode": "table", "placement":
     "bottom", "calcs": ["lastNotNull"]}, "tooltip": {"mode": "multi"}}}, {"id": 29,
     "title": "Pressione CPU per pod", "type": "timeseries", "gridPos": {"x": 0, "y":
-    112, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
+    124, "w": 12, "h": 8}, "datasource": {"type": "prometheus", "uid": "prometheus"},
     "targets": [{"refId": "A", "expr": "100 * sum by(namespace,pod)(rate(container_pressure_cpu_waiting_seconds_total{pod!=\"\",container=\"\",id=~\".*pod[^/]+[.]slice\"}[$__rate_interval]))",
     "legendFormat": "{{namespace}} / {{pod}}"}], "fieldConfig": {"defaults": {"unit":
     "percent"}, "overrides": []}, "options": {"legend": {"displayMode": "table", "placement":
@@ -305,7 +403,7 @@ data:
     "PSI: percentuale di tempo in cui il lavoro resta in attesa di una risorsa. Some
     = almeno un task in attesa; full = tutti i task non inattivi bloccati. Non indica
     semplicemente quanto la risorsa è utilizzata."}, {"id": 30, "title": "Pressione
-    RAM per pod", "type": "timeseries", "gridPos": {"x": 12, "y": 112, "w": 12, "h":
+    RAM per pod", "type": "timeseries", "gridPos": {"x": 12, "y": 124, "w": 12, "h":
     8}, "datasource": {"type": "prometheus", "uid": "prometheus"}, "targets": [{"refId":
     "A", "expr": "100 * sum by(namespace,pod)(rate(container_pressure_memory_waiting_seconds_total{pod!=\"\",container=\"\",id=~\".*pod[^/]+[.]slice\"}[$__rate_interval]))",
     "legendFormat": "{{namespace}} / {{pod}}"}], "fieldConfig": {"defaults": {"unit":
